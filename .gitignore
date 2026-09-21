@@ -1,0 +1,6 @@
+# build output
+*.zip
+# OS / editor
+Thumbs.db
+.DS_Store
+*.swp

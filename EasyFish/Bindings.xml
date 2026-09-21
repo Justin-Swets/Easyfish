@@ -1,0 +1,5 @@
+<Bindings>
+  <Binding name="CLICK EasyFishCastButton:LeftButton" category="EasyFish" header="EASYFISH_HEADER" />
+  <Binding name="EASYFISH_TOGGLE_POLE" category="EasyFish">EasyFish_TogglePole()</Binding>
+  <Binding name="EASYFISH_OPTIONS" category="EasyFish">EasyFish_ToggleOptions()</Binding>
+</Bindings>

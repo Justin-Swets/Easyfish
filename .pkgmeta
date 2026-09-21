@@ -1,0 +1,6 @@
+package-as: EasyFish
+enable-nolib-creation: no
+ignore:
+  - README.md
+  - .pkgmeta
+  - .gitignore

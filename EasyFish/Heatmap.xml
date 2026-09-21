@@ -1,0 +1,22 @@
+<Ui xmlns="http://www.blizzard.com/wow/ui/">
+  <!-- World map pin for a recorded fishing spot (MapCanvasPinMixin, see Heatmap.lua) -->
+  <Button name="EasyFishMapPinTemplate" mixin="EasyFishMapPinMixin" virtual="true">
+    <Size x="18" y="18"/>
+    <Layers>
+      <Layer level="BACKGROUND">
+        <Texture parentKey="Glow" file="Interface\Minimap\UI-Minimap-Ping-Center" alphaMode="ADD">
+          <Size x="30" y="30"/>
+          <Anchors><Anchor point="CENTER"/></Anchors>
+        </Texture>
+      </Layer>
+      <Layer level="ARTWORK">
+        <Texture parentKey="Icon" setAllPoints="true" file="Interface\Icons\INV_Misc_Fish_02"/>
+      </Layer>
+    </Layers>
+    <Scripts>
+      <OnLoad method="OnLoad"/>
+      <OnEnter method="OnMouseEnter"/>
+      <OnLeave method="OnMouseLeave"/>
+    </Scripts>
+  </Button>
+</Ui>

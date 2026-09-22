@@ -128,7 +128,12 @@ local function BestHours(hours)
 end
 
 local function SpotTooltip(tooltip, spot)
-    tooltip:AddLine(("Fishing spot: %s"):format(spot.sub ~= "" and spot.sub or spot.zone or "?"))
+    if NS.IsPoolSpot and NS.IsPoolSpot(spot) then
+        tooltip:AddLine(("|cff44ff44%s|r - %s"):format(NS.PoolLabel(spot), (spot.sub and spot.sub ~= "") and spot.sub or spot.zone or "?"))
+        tooltip:AddLine(("%d pool catches%s"):format(spot.pool or 0, spot.poolCertain and "" or " (inferred)"), 1, 1, 1)
+    else
+        tooltip:AddLine(("Fishing spot: %s"):format((spot.sub and spot.sub ~= "") and spot.sub or spot.zone or "?"))
+    end
     local total = spot.catches + spot.junk
     local junkPct = total > 0 and (spot.junk / total * 100) or 0
     local perHour = spot.seconds > 60 and (spot.catches / (spot.seconds / 3600)) or nil
@@ -170,8 +175,16 @@ end
 function EasyFishMapPinMixin:OnAcquired(spot)
     self.spot = spot
     self:SetPosition(spot.x, spot.y)
-    local r, g, b = ScoreColor(Score(spot))
-    self.Glow:SetVertexColor(r, g, b, 0.8)
+    if NS.IsPoolSpot and NS.IsPoolSpot(spot) then
+        self.Icon:SetTexture("Interface\\Icons\\INV_Crate_04")
+        self.Glow:SetVertexColor(0.3, 1, 0.4, 1)
+        self:SetSize(22, 22)
+    else
+        self.Icon:SetTexture("Interface\\Icons\\INV_Misc_Fish_02")
+        local r, g, b = ScoreColor(Score(spot))
+        self.Glow:SetVertexColor(r, g, b, 0.8)
+        self:SetSize(18, 18)
+    end
     self.Icon:SetVertexColor(1, 1, 1)
 end
 
@@ -314,8 +327,14 @@ local function UpdateMinimapPins()
                 pin.spot = spot
                 pin:ClearAllPoints()
                 pin:SetPoint("CENTER", Minimap, "CENTER", sx, sy)
-                local r, g, b = ScoreColor(Score(spot))
-                pin.Ring:SetVertexColor(r, g, b, 0.9)
+                if NS.IsPoolSpot and NS.IsPoolSpot(spot) then
+                    pin.Icon:SetTexture("Interface\\Icons\\INV_Crate_04")
+                    pin.Ring:SetVertexColor(0.3, 1, 0.4, 1)
+                else
+                    pin.Icon:SetTexture("Interface\\Icons\\INV_Misc_Fish_02")
+                    local r, g, b = ScoreColor(Score(spot))
+                    pin.Ring:SetVertexColor(r, g, b, 0.9)
+                end
                 pin:SetAlpha(dist > limit and 0.5 or 1)
             end
         end

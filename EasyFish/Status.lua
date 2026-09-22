@@ -43,6 +43,7 @@ end
 local zoneRow   = Row("GameFontNormalSmall")
 local advice    = FS("GameFontHighlightSmall")
 local trainer   = FS("GameFontHighlightSmall")
+local poolLine  = FS("GameFontHighlightSmall")
 local rule1     = Rule()
 local goldRow   = Row("GameFontNormal")
 local catchRow  = Row("GameFontHighlightSmall")
@@ -176,6 +177,11 @@ function NS.StatusHeader(y)
         trainer:SetText(tl)
         y = Place(trainer, y, 0, W) - 13
     else trainer:Hide() end
+    local pl = NS.PoolLine and NS.PoolLine()
+    if pl then
+        poolLine:SetText(pl)
+        y = Place(poolLine, y, 0, W) - 13
+    else poolLine:Hide() end
     y = PlaceRule(rule1, y)
 
     -- Money and rate

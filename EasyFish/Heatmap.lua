@@ -162,8 +162,9 @@ end
 EasyFishMapPinMixin = CreateFromMixins(MapCanvasPinMixin or {})
 
 function EasyFishMapPinMixin:OnLoad()
+    if MapCanvasPinMixin and MapCanvasPinMixin.OnLoad then MapCanvasPinMixin.OnLoad(self) end
     if self.SetScalingLimits then self:SetScalingLimits(1, 1.0, 1.3) end
-    if self.UseFrameLevelType then self:UseFrameLevelType("PIN_FRAME_LEVEL_AREA_POI") end
+    if self.UseFrameLevelType then pcall(self.UseFrameLevelType, self, "PIN_FRAME_LEVEL_AREA_POI") end
 end
 
 function EasyFishMapPinMixin:OnAcquired(spot)
@@ -184,19 +185,36 @@ function EasyFishMapPinMixin:OnMouseLeave() GameTooltip:Hide() end
 
 local WorldProvider = CreateFromMixins(MapCanvasDataProviderMixin or {})
 
-function WorldProvider:RemoveAllData()
-    self:GetMap():RemoveAllPinsByTemplate("EasyFishMapPinTemplate")
+function WorldProvider:OnAdded(map)
+    MapCanvasDataProviderMixin.OnAdded(self, map)
+    -- Tell the canvas what our template is so its pin pool creates the right frame type
+    if map.SetPinTemplateType then pcall(map.SetPinTemplateType, map, "EasyFishMapPinTemplate", "FRAME") end
 end
 
+function WorldProvider:RemoveAllData()
+    pcall(self:GetMap().RemoveAllPinsByTemplate, self:GetMap(), "EasyFishMapPinTemplate")
+end
+
+-- Everything here runs inside Blizzard's map refresh; an error would break the map for the player.
+-- So: protected, and on the first failure the world-map pins switch themselves off.
+local pinsBroken = false
 function WorldProvider:RefreshAllData()
     self:RemoveAllData()
-    if not NS.db or not NS.db.worldPins then return end
-    local mapID = self:GetMap():GetMapID()
+    if pinsBroken or not NS.db or not NS.db.worldPins then return end
+    local map = self:GetMap()
+    local mapID = map:GetMapID()
     local spots = NS.db.spots[mapID]
     if not spots then return end
     for _, spot in pairs(spots) do
         if spot.casts >= (NS.db.pinMinCasts or 3) then
-            self:GetMap():AcquirePin("EasyFishMapPinTemplate", spot)
+            local ok, err = pcall(map.AcquirePin, map, "EasyFishMapPinTemplate", spot)
+            if not ok then
+                pinsBroken = true
+                self:RemoveAllData()
+                Print("world map pins disabled - the map API rejected our pin (%s). Minimap pins still work; please report this.",
+                    tostring(err):sub(1, 120))
+                return
+            end
         end
     end
 end

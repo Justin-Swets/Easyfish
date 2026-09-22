@@ -1,6 +1,7 @@
 <Ui xmlns="http://www.blizzard.com/wow/ui/">
-  <!-- World map pin for a recorded fishing spot (MapCanvasPinMixin, see Heatmap.lua) -->
-  <Button name="EasyFishMapPinTemplate" mixin="EasyFishMapPinMixin" virtual="true">
+  <!-- World map pin for a recorded fishing spot (MapCanvasPinMixin, see Heatmap.lua).
+       A plain Frame: the map canvas creates pins as FRAME type and wires mouse scripts itself. -->
+  <Frame name="EasyFishMapPinTemplate" mixin="EasyFishMapPinMixin" enableMouse="true" virtual="true">
     <Size x="18" y="18"/>
     <Layers>
       <Layer level="BACKGROUND">
@@ -15,8 +16,6 @@
     </Layers>
     <Scripts>
       <OnLoad method="OnLoad"/>
-      <OnEnter method="OnMouseEnter"/>
-      <OnLeave method="OnMouseLeave"/>
     </Scripts>
-  </Button>
+  </Frame>
 </Ui>

@@ -2,7 +2,7 @@
 ## Title: EasyFish
 ## Notes: Fishing helper for WoW: Forever - easy cast, bite sound boost, smart lures, zone guide, personal spot heatmap, catch log, and more.
 ## Author: jswets
-## Version: 2.8.0
+## Version: 2.8.1
 ## SavedVariables: EasyFishDB
 ## IconTexture: Interface\Icons\Trade_Fishing
 ## X-Category: Professions

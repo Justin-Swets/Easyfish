@@ -3,8 +3,9 @@
     Runs Sync-EasyFish.ps1 in the background from Windows logon, so EasyFish history always survives.
 
 .DESCRIPTION
-    Copies Sync-EasyFish.ps1 to %LOCALAPPDATA%\EasyFish (addon updates replace the addon folder, so it can't live
-    there) and registers a per-user scheduled task "EasyFish Sync" that starts it in watch mode at logon.
+    Copies Sync-EasyFish.ps1 to <WowRoot>\WTF\EasyFish-Sync (addon updates replace the addon folder and game
+    updates leave WTF alone) and registers a per-user scheduled task "EasyFish Sync" that starts it in watch mode
+    at logon.
     No administrator rights needed. Starts it immediately too.
 
     Remove it again with:  .\Install-EasyFishSync.ps1 -Uninstall
@@ -19,7 +20,9 @@ param(
 
 $ErrorActionPreference = "Stop"
 $TaskName = "EasyFish Sync"
-$Home_    = Join-Path $env:LOCALAPPDATA "EasyFish"
+# Not under AppData: apps installed from the Microsoft Store (and some launchers) see a private copy of AppData,
+# so a script put there by them is invisible to Task Scheduler.
+$Home_    = Join-Path $WowRoot "WTF\EasyFish-Sync"
 $Script   = Join-Path $Home_ "Sync-EasyFish.ps1"
 
 if ($Uninstall) {
@@ -35,7 +38,8 @@ if (-not (Test-Path (Join-Path $WowRoot "WTF"))) { throw "No WTF folder under $W
 New-Item -ItemType Directory -Force $Home_ | Out-Null
 Copy-Item (Join-Path $PSScriptRoot "Sync-EasyFish.ps1") $Script -Force
 
-$action = New-ScheduledTaskAction -Execute "powershell.exe" `
+$PowerShell = Join-Path $env:SystemRoot "System32\WindowsPowerShell\v1.0\powershell.exe"
+$action = New-ScheduledTaskAction -Execute $PowerShell `
     -Argument "-NoProfile -WindowStyle Hidden -ExecutionPolicy Bypass -File `"$Script`" -WowRoot `"$WowRoot`" -Watch"
 $trigger   = New-ScheduledTaskTrigger -AtLogOn -User $env:USERNAME
 $principal = New-ScheduledTaskPrincipal -UserId $env:USERNAME -LogonType Interactive -RunLevel Limited
@@ -45,6 +49,11 @@ $settings  = New-ScheduledTaskSettingsSet -ExecutionTimeLimit ([TimeSpan]::Zero)
 Register-ScheduledTask -TaskName $TaskName -Action $action -Trigger $trigger -Principal $principal -Settings $settings `
     -Description "Keeps EasyFish fishing history across logins on the WoW: Forever beta." -Force | Out-Null
 Start-ScheduledTask -TaskName $TaskName
+Start-Sleep -Seconds 3
+$result = (Get-ScheduledTaskInfo -TaskName $TaskName).LastTaskResult
+if ((Get-ScheduledTask -TaskName $TaskName).State -ne "Running") {
+    throw ("EasyFish Sync did not stay running (result 0x{0:X}). Try running Sync-EasyFish.ps1 by hand to see why." -f $result)
+}
 
 Write-Host "EasyFish Sync installed and running. It starts with Windows; nothing else to do."
 Write-Host "Log: WTF\Account\<account>\SavedVariables\EasyFish-sync\sync.log"

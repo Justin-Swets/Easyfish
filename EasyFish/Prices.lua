@@ -60,6 +60,9 @@ end
 local function Interesting(name)
     if NS.FISH_SKILL[name] or NS.TIMED_FISH[name] or NS.db.totals[name] then return true end
     if NS.IsTreasure(name) then return true end
+    for _, items in pairs(NS.db.chestLoot or {}) do   -- anything that has ever come out of a fished-up chest
+        if items[name] then return true end
+    end
     return name:sub(1, 4) == "Raw " or name:find("Fish", 1, true) ~= nil
 end
 
@@ -137,15 +140,32 @@ end, "[item] show cached prices, or the price used for one item")
 ------------------------------------------------------------------------------------------------------------------------
 -- Session value (replaces the vendor-only tally)
 ------------------------------------------------------------------------------------------------------------------------
-NS.OnCatch(function(loot)
+-- Adds a looted item to the session's value. kind = "chest" also counts it toward what chests were worth.
+-- Item info is often not cached the first time an item is seen (the price comes back nil), so retry briefly.
+function NS.AddLootValue(link, quantity, kind, tries)
     local session = NS.session
+    local name = NS.GetItemInfo(link)
+    if not name then
+        tries = (tries or 0) + 1
+        if tries <= 5 then C_Timer.After(0.5 * tries, function() NS.AddLootValue(link, quantity, kind, tries) end) end
+        return
+    end
+    local vendor = select(11, NS.GetItemInfo(link)) or 0
+    local best, src = NS.PriceOf(link)
+    local each = (best and best > 0) and best or vendor
+    session.copper = session.copper + vendor * quantity
+    session.value  = (session.value or 0) + each * quantity
+    if src == "ah" then session.usedAH = true end
+    if kind == "chest" then session.chestValue = (session.chestValue or 0) + each * quantity end
+    NS.UpdateUI()
+end
+
+NS.OnCatch(function(loot)
     for _, item in ipairs(loot) do
-        local link = item.link or item.name
-        local vendor = select(11, NS.GetItemInfo(link)) or 0
-        local best, src = NS.PriceOf(link)
-        session.copper = session.copper + vendor * item.quantity
-        session.value  = (session.value or 0) + (best or vendor) * item.quantity
-        if src == "ah" then session.usedAH = true end
+        -- A chest is worth what is inside it; that is counted when it is opened, so the box itself adds nothing.
+        if not NS.IsTreasure(item.name) then
+            NS.AddLootValue(item.link or item.name, item.quantity, "fish")
+        end
     end
 end)
 

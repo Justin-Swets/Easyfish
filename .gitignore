@@ -4,3 +4,6 @@
 Thumbs.db
 .DS_Store
 *.swp
+
+# per-user history snapshot written by tools/Sync-EasyFish.ps1
+EasyFish/EasyFish_Saved.lua

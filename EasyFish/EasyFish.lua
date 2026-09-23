@@ -47,7 +47,7 @@ NS.DEFAULTS = {
 }
 
 local db
-NS.session = { catches = {}, count = 0, casts = 0, started = 0, copper = 0, activeSeconds = 0, lastActivity = nil, chests = 0, value = 0, usedAH = false }
+NS.session = { catches = {}, count = 0, casts = 0, started = 0, copper = 0, activeSeconds = 0, lastActivity = nil, chests = 0, value = 0, usedAH = false, chestValue = 0 }
 local session = NS.session
 
 local function CopyDefaults(dst, src)
@@ -71,12 +71,120 @@ function NS.Touch()
     session.lastActivity = now
 end
 
+------------------------------------------------------------------------------------------------------------------------
+-- Loading history
+--
+-- The Forever beta writes SavedVariables on logout but never reads them back, so every login would start empty.
+-- Workaround: tools\Sync-EasyFish.ps1 copies the saved file into this addon folder as EasyFish_Saved.lua, which
+-- the .toc loads as ordinary code. It defines:
+--   EasyFishSnapshot       - the full history (same lineage = same continuous history)
+--   EasyFishOrphans[id]    - sessions that were saved while history failed to load; merged in here, once each
+-- If Blizzard fixes the bug, EasyFishDB loads normally and the snapshot is only used when it is newer.
+------------------------------------------------------------------------------------------------------------------------
+local function NewLineage()
+    return ("%x%04x"):format(time(), math.random(0, 0xffff))
+end
+
+-- Adds one session's counts into db. Settings are left alone; positions are weighted by casts.
+local function MergeInto(dst, src)
+    local function add(t, k, v) t[k] = (t[k] or 0) + (tonumber(v) or 0) end
+    local function sub(t, k) t[k] = t[k] or {} return t[k] end
+
+    for name, n in pairs(src.totals or {}) do add(dst.totals, name, n) end
+    add(dst, "totalCasts", src.totalCasts)
+
+    for mapID, spots in pairs(src.spots or {}) do
+        local dmap = sub(dst.spots, mapID)
+        for key, s in pairs(spots) do
+            local d = dmap[key]
+            if not d then
+                dmap[key] = s
+            else
+                local n1, n2 = d.n or 0, s.n or 0
+                if n1 + n2 > 0 and s.x and d.x then
+                    d.x = (d.x * n1 + s.x * n2) / (n1 + n2)
+                    d.y = (d.y * n1 + s.y * n2) / (n1 + n2)
+                end
+                for _, f in ipairs({ "n", "casts", "catches", "junk", "seconds", "chests", "pool" }) do
+                    if s[f] then add(d, f, s[f]) end
+                end
+                d.poolCertain = d.poolCertain or s.poolCertain
+                for h, c in pairs(s.hours or {}) do add(sub(d, "hours"), h, c) end
+                for name, rec in pairs(s.items or {}) do
+                    local di = sub(d, "items")[name]
+                    if not di then d.items[name] = rec
+                    else
+                        add(di, "n", rec.n)
+                        for h, c in pairs(rec.hours or {}) do add(sub(di, "hours"), h, c) end
+                    end
+                end
+                for _, f in ipairs({ "mats", "poolNames" }) do
+                    for name, c in pairs(s[f] or {}) do add(sub(d, f), name, c) end
+                end
+            end
+        end
+    end
+
+    for zone, items in pairs(src.mats or {}) do
+        local dz = sub(dst.mats, zone)
+        for name, rec in pairs(items) do
+            local d = dz[name]
+            if not d then dz[name] = rec
+            else add(d, "n", rec.n) add(d, "chest", rec.chest) d.prof = d.prof or rec.prof end
+        end
+    end
+    for chest, items in pairs(src.chestLoot or {}) do
+        local dc = sub(dst.chestLoot, chest)
+        for name, c in pairs(items) do add(dc, name, c) end
+    end
+    for name, rec in pairs(src.prices or {}) do
+        local d = dst.prices[name]
+        if not d or (rec.t or 0) > (d.t or 0) then dst.prices[name] = rec end
+    end
+    if (src.lastScan or 0) > (dst.lastScan or 0) then dst.lastScan = src.lastScan end
+    for id in pairs(src.mergedOrphans or {}) do dst.mergedOrphans[id] = true end
+end
+
 local function InitDB()
-    -- Note: on the Forever beta SavedVariables sometimes do not load back; everything must tolerate a fresh table.
+    local loaded = type(EasyFishDB) == "table" and next(EasyFishDB) ~= nil
+    local snap = type(EasyFishSnapshot) == "table" and EasyFishSnapshot or nil
+    NS.loadSource = loaded and "saved" or "none"
+    if snap then
+        if not loaded then
+            EasyFishDB, NS.loadSource = snap, "snapshot"
+        elseif snap.lineage and snap.lineage == EasyFishDB.lineage and (snap.saves or 0) > (EasyFishDB.saves or 0) then
+            EasyFishDB, NS.loadSource = snap, "snapshot"
+        end
+    end
     if type(EasyFishDB) ~= "table" then EasyFishDB = {} end
     db = EasyFishDB
     CopyDefaults(db, NS.DEFAULTS)
     NS.db = db
+    db.lineage = db.lineage or NewLineage()
+    db.saves = db.saves or 0
+    db.mergedOrphans = db.mergedOrphans or {}
+
+    NS.mergedCount = 0
+    if type(EasyFishOrphans) == "table" then
+        for id, orphan in pairs(EasyFishOrphans) do
+            if type(orphan) == "table" and id ~= db.lineage and not db.mergedOrphans[id] then
+                MergeInto(db, orphan)
+                db.mergedOrphans[id] = true
+                NS.mergedCount = NS.mergedCount + 1
+            end
+        end
+    end
+    EasyFishSnapshot, EasyFishOrphans = nil, nil
+end
+
+local function ReportLoad()
+    if NS.loadSource == "none" then
+        NS.Print("|cffff8800history did not load|r - this is the Forever beta SavedVariables bug. This session is still saved " ..
+              "and will be merged back in: run |cffffff00tools\\Sync-EasyFish.ps1|r (or install the background sync) before your next login.")
+    elseif NS.mergedCount > 0 then
+        NS.Print("history restored, and %d session%s saved while it was missing merged back in.",
+            NS.mergedCount, NS.mergedCount == 1 and "" or "s")
+    end
 end
 
 ------------------------------------------------------------------------------------------------------------------------
@@ -415,12 +523,40 @@ EasyFish_TogglePole = TogglePole -- for the key binding
 ------------------------------------------------------------------------------------------------------------------------
 -- Catch log
 ------------------------------------------------------------------------------------------------------------------------
+-- Coin slots show up in the loot window as "1 Silver<newline>42 Copper"; they are money, not items.
+function NS.IsMoneySlot(i)
+    local money = (Enum and Enum.LootSlotType and Enum.LootSlotType.Money) or LOOT_SLOT_MONEY or 2
+    if safe(GetLootSlotType, i) == money then return true end
+    local _, name = safe(GetLootSlotInfo, i)
+    return type(name) == "string" and name:find("\n", 1, true) ~= nil
+end
+
+-- Coins: measured as the change in your money while the loot window is open, so nothing is guessed from text.
+local moneyWatch
+function NS.WatchMoney(kind)
+    moneyWatch = { before = safe(GetMoney) or 0, kind = kind }
+end
+
+local function SettleMoney()
+    local w = moneyWatch
+    moneyWatch = nil
+    if not w then return end
+    C_Timer.After(0.5, function()
+        local delta = (safe(GetMoney) or 0) - w.before
+        if delta <= 0 then return end
+        session.copper = session.copper + delta
+        session.value  = (session.value or 0) + delta
+        if w.kind == "chest" then session.chestValue = (session.chestValue or 0) + delta end
+        NS.UpdateUI()
+    end)
+end
+
 local function RecordLoot()
     local n = safe(GetNumLootItems) or 0
     local loot = {}
     for i = 1, n do
         local _, name, quantity, _, quality = safe(GetLootSlotInfo, i)
-        if type(name) == "string" then
+        if type(name) == "string" and not NS.IsMoneySlot(i) then
             quantity = tonumber(quantity) or 1
             session.catches[name] = (session.catches[name] or 0) + quantity
             session.count = session.count + quantity
@@ -845,6 +981,7 @@ EF:SetScript("OnEvent", function(self, event, ...)
     if event == "ADDON_LOADED" then
         if ... ~= ADDON then return end
         InitDB()
+        C_Timer.After(3, ReportLoad)
         if db.framePos then
             ui:ClearAllPoints()
             ui:SetPoint(db.framePos[1], UIParent, db.framePos[2], db.framePos[3], db.framePos[4])
@@ -858,6 +995,7 @@ EF:SetScript("OnEvent", function(self, event, ...)
         self:RegisterEvent("PLAYER_REGEN_ENABLED")
         self:RegisterEvent("BAG_UPDATE_DELAYED")
         self:RegisterEvent("LOOT_OPENED")
+        self:RegisterEvent("LOOT_CLOSED")
         self:RegisterEvent("LOOT_BIND_CONFIRM")
         self:RegisterUnitEvent("UNIT_SPELLCAST_CHANNEL_START", "player")
         self:RegisterUnitEvent("UNIT_SPELLCAST_CHANNEL_STOP", "player")
@@ -877,6 +1015,8 @@ EF:SetScript("OnEvent", function(self, event, ...)
 
     elseif event == "PLAYER_LOGOUT" then
         RestoreSound()
+        db.saves = (db.saves or 0) + 1   -- lets the sync script tell a newer save of this history from an older one
+        db.savedAt = time()
 
     elseif event == "PLAYER_REGEN_ENABLED" then
         ConfigureCastButton()  -- re-apply anything we could not touch during combat
@@ -913,8 +1053,12 @@ EF:SetScript("OnEvent", function(self, event, ...)
             C_Timer.After(1.0, function() if not NS.fishingNow then RestoreSound() end end)
         end
 
+    elseif event == "LOOT_CLOSED" then
+        SettleMoney()
+
     elseif event == "LOOT_OPENED" then
         if safe(IsFishingLoot) then
+            NS.WatchMoney("fish")
             NS.Touch()
             RecordLoot()
             UpdateUI()
@@ -970,6 +1114,7 @@ NS.AddCommand("reset", function(rest)
     else
         wipe(session.catches) session.count, session.casts, session.copper = 0, 0, 0
         session.activeSeconds, session.lastActivity, session.chests, session.value, session.usedAH = 0, nil, 0, 0, false
+        session.chestValue = 0
         Print("session log cleared")
     end
     UpdateUI()

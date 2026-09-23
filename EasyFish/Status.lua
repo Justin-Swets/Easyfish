@@ -197,7 +197,9 @@ function NS.StatusHeader(y)
     y = PlaceRow(catchRow, y, 13)
     local here = NS.ChestsHere and NS.ChestsHere() or 0
     if (session.chests or 0) > 0 or here > 0 then
-        chestRow.left:SetText(("|cffffd700Chests|r %d this session"):format(session.chests or 0))
+        local worth = session.chestValue or 0
+        chestRow.left:SetText(("|cffffd700Chests|r %d%s"):format(session.chests or 0,
+            worth > 0 and ("  |cffaaaaaa(" .. NS.FormatMoney(worth) .. " inside)|r") or ""))
         chestRow.right:SetText(here > 0 and ("|cffaaaaaa%d in this zone|r"):format(here) or "")
         y = PlaceRow(chestRow, y, 13)
     else

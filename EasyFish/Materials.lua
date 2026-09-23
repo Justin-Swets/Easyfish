@@ -80,6 +80,15 @@ local function ScanKnown()
     end
 end
 NS.On("PLAYER_ENTERING_WORLD", ScanKnown)
+
+-- Earlier versions recorded coin slots ("1 Silver\n42 Copper") as chest items; drop them.
+NS.On("PLAYER_ENTERING_WORLD", function()
+    for _, items in pairs(NS.db.chestLoot or {}) do
+        for name in pairs(items) do
+            if name:find("\n", 1, true) then items[name] = nil end
+        end
+    end
+end)
 NS.On("SKILL_LINES_CHANGED", ScanKnown)
 
 local function Tracked(prof) return NS.db.profs[prof] == true end
@@ -150,13 +159,21 @@ NS.On("LOOT_OPENED", function()
     if not chest then return end -- some other container (lockbox from a mob, etc.)
     local bucket = NS.db.chestLoot[chest]
     if not bucket then bucket = {} NS.db.chestLoot[chest] = bucket end
+    NS.WatchMoney("chest")   -- coins inside are counted from the change in your money
+    NS.session.chestsOpened = (NS.session.chestsOpened or 0) + 1
+    local before = NS.session.chestValue or 0
+    C_Timer.After(3, function()
+        local worth = (NS.session.chestValue or 0) - before
+        if worth > 0 then Print("%s was worth %s.", chest, NS.FormatMoney(worth)) end
+    end)
     local n = safe(GetNumLootItems) or 0
     for i = 1, n do
         local _, name, quantity = safe(GetLootSlotInfo, i)
         local link = safe(GetLootSlotLink, i)
-        if type(name) == "string" then
+        if type(name) == "string" and not NS.IsMoneySlot(i) then
             quantity = tonumber(quantity) or 1
             bucket[name] = (bucket[name] or 0) + quantity
+            NS.AddLootValue(link or name, quantity, "chest")
             local prof = TrackedProf(link or name)
             local anyProf = NS.MatProfessions(link or name)
             if anyProf then Record(name, quantity, true, prof or anyProf[1]) end

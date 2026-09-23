@@ -8,6 +8,21 @@ key; everything else is information.
 1. Find your Forever install. During the beta it is `World of Warcraft\_classic_beta_\`.
 2. Copy the `EasyFish` folder into `<that folder>\Interface\AddOns\` so you have `...\AddOns\EasyFish\EasyFish.toc`.
 3. `/reload` or restart, enable it on the AddOns screen. `/fish` opens settings; there is also a minimap button.
+4. **Keep your history (Forever beta):** run `tools\Install-EasyFishSync.ps1` once. See below.
+
+## Keeping history on the Forever beta
+The Forever beta client writes SavedVariables when you log out but never reads them back, so without help every
+login starts with no history. `tools\Sync-EasyFish.ps1` works around it: it copies your saved file into the addon
+folder as `EasyFish_Saved.lua`, which the addon loads on login.
+
+- **Install once:** right-click `tools\Install-EasyFishSync.ps1` → *Run with PowerShell*. It runs the sync in the
+  background from Windows logon (per-user scheduled task, no admin rights). `-Uninstall` removes it.
+- **Or by hand:** run `tools\Sync-EasyFish.ps1` after you log out and before you log back in.
+- Sessions played while history failed to load are not lost: they are kept and merged back in on the next login.
+- Every save is backed up to `WTF\Account\<account>\SavedVariables\EasyFish-sync\backups` (last 40).
+- Avoid `/reload` while fishing: the client saves and reloads faster than the sync can react, so the session before
+  the reload can be lost from history (it is still in the backups).
+- If Blizzard fixes the bug, nothing needs to change; the addon uses whichever copy is newer.
 
 ## Features
 
@@ -54,7 +69,9 @@ key; everything else is information.
 ## Notes
 - Zone skill values are Classic Era numbers. Forever is Classic+ and may differ; unknown zones say "no data".
   Corrections welcome — they live in `Data.lua`.
-- Forever beta quirk: SavedVariables sometimes don't load back, so history may reset until Blizzard fixes it.
+- Forever beta quirk: SavedVariables don't load back; see *Keeping history on the Forever beta* above.
+- Gold/hour counts everything you fish up, including what's inside chests and trunks (items and coins) once you
+  open them. The chest itself counts as nothing, since its value is what's inside.
 
 ## Development
 The addon lives in `EasyFish/`. Symlink or copy that folder into `Interface\AddOns\`.

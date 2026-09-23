@@ -165,9 +165,16 @@ if ($Watch) {
     $watcher.IncludeSubdirectories = $true
     $watcher.NotifyFilter = [IO.NotifyFilters]'LastWrite, FileName, Size'
     Write-Host "Watching for EasyFish saves. Leave this running while you play."
+    $snapshot = Join-Path $AddonDir "EasyFish_Saved.lua"
     while ($true) {
-        $change = $watcher.WaitForChanged([IO.WatcherChangeTypes]::All, 60000)
-        if ($change.TimedOut) { continue }
+        $change = $watcher.WaitForChanged([IO.WatcherChangeTypes]::All, 15000)
+        if ($change.TimedOut) {
+            # Updating the addon replaces its folder and deletes the snapshot; put it back before the next login
+            if ((Test-Path $AddonDir) -and -not (Test-Path $snapshot)) {
+                try { Sync-All } catch { Write-Host "sync failed: $_" }
+            }
+            continue
+        }
         Start-Sleep -Milliseconds 400   # let the client finish writing
         try { Sync-All } catch { Write-Host "sync failed: $_" }
     }

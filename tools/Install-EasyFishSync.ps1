@@ -35,12 +35,18 @@ if ($Uninstall) {
 
 if (-not (Test-Path (Join-Path $WowRoot "WTF"))) { throw "No WTF folder under $WowRoot - pass -WowRoot with your Forever client folder." }
 
+# Reinstalling: stop the running watcher first so the new one replaces it
+Stop-ScheduledTask -TaskName $TaskName -ErrorAction SilentlyContinue
+
 New-Item -ItemType Directory -Force $Home_ | Out-Null
 Copy-Item (Join-Path $PSScriptRoot "Sync-EasyFish.ps1") $Script -Force
 
 $PowerShell = Join-Path $env:SystemRoot "System32\WindowsPowerShell\v1.0\powershell.exe"
-$action = New-ScheduledTaskAction -Execute $PowerShell `
-    -Argument "-NoProfile -WindowStyle Hidden -ExecutionPolicy Bypass -File `"$Script`" -WowRoot `"$WowRoot`" -Watch"
+$ConHost    = Join-Path $env:SystemRoot "System32\conhost.exe"
+# "powershell -WindowStyle Hidden" is not enough: when Windows Terminal is the default terminal (Windows 11) it
+# ignores that and leaves a window open. conhost --headless runs the console without ever creating a window.
+$action = New-ScheduledTaskAction -Execute $ConHost `
+    -Argument "--headless `"$PowerShell`" -NoProfile -WindowStyle Hidden -ExecutionPolicy Bypass -File `"$Script`" -WowRoot `"$WowRoot`" -Watch"
 $trigger   = New-ScheduledTaskTrigger -AtLogOn -User $env:USERNAME
 $principal = New-ScheduledTaskPrincipal -UserId $env:USERNAME -LogonType Interactive -RunLevel Limited
 $settings  = New-ScheduledTaskSettingsSet -ExecutionTimeLimit ([TimeSpan]::Zero) -AllowStartIfOnBatteries `

@@ -1,4 +1,4 @@
-## Interface: 16001, 120105, 120100
+## Interface: 16001
 ## Title: EasyFish
 ## Notes: Fishing helper for WoW: Forever - easy cast, bite sound boost, smart lures, zone guide, personal spot heatmap, catch log, and more.
 ## Author: jswets

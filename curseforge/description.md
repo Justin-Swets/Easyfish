@@ -6,6 +6,8 @@ EasyFish handles everything around the bobber so you can focus on the bobber: ca
 
 It never detects the bite or clicks the bobber for you. Every action is one click or key press from you, exactly as the game intends — no automation, nothing that puts your account at risk.
 
+> **EasyFish is new, and it's being shaped by the people who use it.** Forever is still in beta, so your reports on what works, what doesn't and what's different from Classic make the addon better for everyone. Drop a comment on the **Comments** tab — the **Feedback** section at the bottom of this page lists what helps most.
+
 ---
 
 ## Casting made easy
@@ -88,6 +90,20 @@ Everything is configurable from the **minimap button** or **`/fish`**, also unde
 
 ## Feedback
 
-Found a bug, a wrong zone value or a trainer in the wrong place? Please open an issue on GitHub — a screenshot or the text of any error helps a lot.
+**Your feedback decides what EasyFish becomes.** Every comment is a chance to fix something, add something or get the numbers right, so please don't hold back — short comments are just as welcome as long ones.
+
+**Especially helpful right now:**
+
+- **Bugs and Lua errors.** Paste the error text (or a screenshot) and say what you were doing when it happened.
+- **Forever vs Classic.** Forever is Classic+, and Blizzard has changed things. If a zone's skill numbers, the fish you catch, junk rates, pools, chest names or trainer locations don't match what EasyFish says, tell us — this is data only players can provide.
+- **Ideas.** A feature you wish it had, something another fishing addon does better, or a setting you keep wanting.
+- **What you love.** Knowing which features people actually use tells us what to protect and polish.
+
+**Where to post:**
+
+- **Comments tab on this page** — the easiest place for questions, ideas and quick reports.
+- **GitHub issues** — best for detailed bug reports, since you can attach files and follow the fix.
+
+If EasyFish makes your fishing easier, a comment saying so (and which feature helped) is hugely motivating too.
 
 **Source and issues:** https://github.com/Justin-Swets/Easyfish

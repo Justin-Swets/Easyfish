@@ -7,3 +7,6 @@ Thumbs.db
 
 # per-user history snapshot written by tools/Sync-EasyFish.ps1
 EasyFish/EasyFish_Saved.lua
+
+# packager build output
+.release/

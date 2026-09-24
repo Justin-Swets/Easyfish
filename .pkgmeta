@@ -1,6 +1,18 @@
+# BigWigs packager config (https://github.com/BigWigsMods/packager), used by .github/workflows/release.yml.
+#
+# The addon lives in the EasyFish/ subfolder of this repo. move-folders lifts its contents up to the top of the
+# package, so the zip contains EasyFish/EasyFish.toc and players can drop the folder straight into Interface\AddOns.
+# tools/ (the optional history sync for the Forever beta) ends up at EasyFish/tools, where the docs point.
 package-as: EasyFish
 enable-nolib-creation: no
+
+move-folders:
+  EasyFish/EasyFish: EasyFish
+
 ignore:
   - README.md
   - .pkgmeta
   - .gitignore
+  - .github
+  - branding
+  - curseforge

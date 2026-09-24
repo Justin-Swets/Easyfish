@@ -12,8 +12,10 @@ key; everything else is information.
 
 ## Keeping history on the Forever beta
 The Forever beta client writes SavedVariables when you log out but never reads them back, so without help every
-login starts with no history. `tools\Sync-EasyFish.ps1` works around it: it copies your saved file into the addon
-folder as `EasyFish_Saved.lua`, which the addon loads on login.
+login starts with no history. `tools\Sync-EasyFish.ps1` works around it: it writes your saved data as a small
+companion addon, `Interface\AddOns\EasyFish_History`, which EasyFish loads first. It has its own folder, so updating
+EasyFish (by hand or through the CurseForge app) never touches it. **Restart the game once** after the first sync so
+the client notices the new addon folder, and keep *EasyFish History* enabled in the AddOns list.
 
 - **Install once:** right-click `tools\Install-EasyFishSync.ps1` → *Run with PowerShell*. It runs the sync in the
   background from Windows logon (per-user scheduled task, no admin rights). `-Uninstall` removes it.
@@ -27,7 +29,8 @@ folder as `EasyFish_Saved.lua`, which the addon loads on login.
 ## Features
 
 ### Casting
-- **Double right-click** on the world casts. Right-drag (camera), right-click on the bobber / NPCs work normally.
+- **Double right-click** on the world casts, while a fishing pole is equipped. It never equips anything, never fires
+  over a creature or NPC, and is off in combat. Right-drag (camera), right-click on the bobber / NPCs work normally.
 - **Hotkey**: Key Bindings → EasyFish → *Cast fishing line*. Most reliable option.
 - **Keyboard fishing** (Extras tab): turns on Blizzard's soft-target interact so after a cast the bobber becomes your
   interact target and the *Interact With Target* key grabs it. It's a game setting, not automation.

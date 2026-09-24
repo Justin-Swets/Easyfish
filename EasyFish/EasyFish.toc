@@ -7,10 +7,8 @@
 ## IconTexture: Interface\Icons\Trade_Fishing
 ## X-Category: Professions
 ## X-Curse-Project-ID: 1709292
-## OptionalDeps: Auctionator, TradeSkillMaster
+## OptionalDeps: Auctionator, TradeSkillMaster, EasyFish_History
 
-# Written by tools/Sync-EasyFish.ps1 (Forever beta SavedVariables workaround); absent until the first sync.
-EasyFish_Saved.lua
 EasyFish.lua
 Data.lua
 Guide.lua

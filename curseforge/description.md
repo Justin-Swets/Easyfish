@@ -10,9 +10,9 @@ It never detects the bite or clicks the bobber for you. Every action is one clic
 
 ## Casting made easy
 
-- **Double right-click to cast** anywhere on the water. Right-drag to turn the camera, right-click the bobber and talk to NPCs all work exactly as normal.
-- **Or bind a key** to *Cast fishing line* (Key Bindings → EasyFish).
-- **Auto-equips your best fishing pole** if you try to cast without one, and **swaps your weapon back** with one click — or automatically the moment you target something hostile, before combat locks your gear.
+- **Double right-click to cast** while your fishing pole is equipped. It stays out of your way everywhere else: it never equips anything, never fires when you right-click a creature or NPC, and is off in combat. Right-drag to turn the camera, right-click the bobber and talk to NPCs all work exactly as normal.
+- **Or bind a key** to *Cast fishing line* (Key Bindings → EasyFish). Press it without a pole and your best fishing pole is equipped for you.
+- **Swaps your weapon back** with one click — or automatically the moment you target something hostile, before combat locks your gear.
 - **Bite sound boost:** while your line is out, sound effects go to full volume and music and ambience are muted, so the splash is impossible to miss. Your sound settings are restored when you stop.
 - **Cast timer bar** so you know when to recast.
 - **Keyboard fishing (experimental):** turns on the game's own soft-target interact, so after a cast your *Interact With Target* key grabs the bobber.
@@ -82,7 +82,7 @@ Everything is configurable from the **minimap button** or **`/fish`**, also unde
 
 ## Good to know
 
-- **Keeping your history on the Forever beta.** The beta client currently saves addon data when you log out but doesn't load it back, so without help every login starts fresh. EasyFish includes an optional helper for Windows: run `EasyFish\tools\Install-EasyFishSync.ps1` once and your history carries over automatically, with backups. It runs silently in the background, needs no admin rights, and can be removed with `-Uninstall`. When Blizzard fixes the bug, nothing needs to change.
+- **Keeping your history on the Forever beta.** The beta client currently saves addon data when you log out but doesn't load it back, so without help every login starts fresh. EasyFish includes an optional helper for Windows: run `EasyFish\tools\Install-EasyFishSync.ps1` once, then restart the game, and your history carries over automatically, with backups. It keeps your history in a small companion addon, *EasyFish History*, so updating EasyFish never touches it. It runs silently in the background, needs no admin rights, and can be removed with `-Uninstall`. When Blizzard fixes the bug, nothing needs to change.
 - **Zone skill numbers** come from Classic and are a guide — Forever is Classic+ and some values may differ. Zones without data say so rather than guess. Corrections are very welcome.
 - EasyFish is written for the Forever client (interface 16001) using the modern addon API.
 

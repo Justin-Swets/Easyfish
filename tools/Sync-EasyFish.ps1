@@ -4,8 +4,10 @@
 
 .DESCRIPTION
     The Forever beta client writes SavedVariables when you log out but never reads them back, so every login
-    starts with empty history. This script copies EasyFish's saved file into the addon folder as
-    EasyFish_Saved.lua, which the addon loads as ordinary code.
+    starts with empty history. This script writes EasyFish's saved data as a small companion addon,
+    Interface\AddOns\EasyFish_History, which EasyFish loads first. It has its own folder so updating EasyFish (by
+    hand or through the CurseForge app) never deletes it. Restart the game once after the first sync so the client
+    sees the new addon folder.
 
     It also protects history:
       * Every save is backed up (WTF\...\SavedVariables\EasyFish-sync\backups, last 40 kept).
@@ -26,8 +28,21 @@ param(
 )
 
 $ErrorActionPreference = "Stop"
-$AddonDir = Join-Path $WowRoot "Interface\AddOns\EasyFish"
+$AddonDir   = Join-Path $WowRoot "Interface\AddOns\EasyFish"
+$HistoryDir = Join-Path $WowRoot "Interface\AddOns\EasyFish_History"
+$HistoryLua = Join-Path $HistoryDir "EasyFish_History.lua"
+$LegacyFile = Join-Path $AddonDir "EasyFish_Saved.lua"   # where EasyFish 2.8.0 - 2.8.3 looked for it
 $Utf8 = New-Object System.Text.UTF8Encoding $false
+
+$HistoryToc = @"
+## Interface: 16001
+## Title: EasyFish History
+## Notes: Your EasyFish fishing history, written by the EasyFish sync tool. Keep it enabled; it is rewritten automatically.
+## Author: EasyFish sync (generated)
+## Version: generated
+
+EasyFish_History.lua
+"@
 
 function Read-Text([string]$Path) { [IO.File]::ReadAllText($Path) }
 function Write-Text([string]$Path, [string]$Text) { [IO.File]::WriteAllText($Path, $Text, $Utf8) }
@@ -154,8 +169,20 @@ function Sync-All {
         [void]$out.AppendLine($text)
         $n++
     }
-    Write-Text (Join-Path $AddonDir "EasyFish_Saved.lua") $out.ToString()
-    Write-Log $r.Sync ("addon snapshot written ({0} unmerged session{1})" -f $n, $(if ($n -eq 1) { "" } else { "s" }))
+    New-Item -ItemType Directory -Force $HistoryDir | Out-Null
+    Write-Text (Join-Path $HistoryDir "EasyFish_History.toc") $HistoryToc
+    Write-Text $HistoryLua $out.ToString()
+
+    # EasyFish 2.8.0 - 2.8.3 loaded the snapshot from inside its own folder. Keep feeding an old install; once the
+    # installed EasyFish no longer asks for that file, remove the leftover copy.
+    $toc = Join-Path $AddonDir "EasyFish.toc"
+    if ((Test-Path $toc) -and (Select-String -Path $toc -Pattern "EasyFish_Saved.lua" -SimpleMatch -Quiet)) {
+        Write-Text $LegacyFile $out.ToString()
+    }
+    elseif (Test-Path $LegacyFile) {
+        Remove-Item -LiteralPath $LegacyFile
+    }
+    Write-Log $r.Sync ("history addon written ({0} unmerged session{1})" -f $n, $(if ($n -eq 1) { "" } else { "s" }))
 }
 
 Sync-All
@@ -165,12 +192,14 @@ if ($Watch) {
     $watcher.IncludeSubdirectories = $true
     $watcher.NotifyFilter = [IO.NotifyFilters]'LastWrite, FileName, Size'
     Write-Host "Watching for EasyFish saves. Leave this running while you play."
-    $snapshot = Join-Path $AddonDir "EasyFish_Saved.lua"
     while ($true) {
         $change = $watcher.WaitForChanged([IO.WatcherChangeTypes]::All, 15000)
         if ($change.TimedOut) {
-            # Updating the addon replaces its folder and deletes the snapshot; put it back before the next login
-            if ((Test-Path $AddonDir) -and -not (Test-Path $snapshot)) {
+            # Put the history back if it went missing (deleted by hand, or an old EasyFish install was updated)
+            $legacyNeeded = (Test-Path (Join-Path $AddonDir "EasyFish.toc")) -and
+                (Select-String -Path (Join-Path $AddonDir "EasyFish.toc") -Pattern "EasyFish_Saved.lua" -SimpleMatch -Quiet) -and
+                -not (Test-Path $LegacyFile)
+            if ((Test-Path $AddonDir) -and (-not (Test-Path $HistoryLua) -or $legacyNeeded)) {
                 try { Sync-All } catch { Write-Host "sync failed: $_" }
             }
             continue

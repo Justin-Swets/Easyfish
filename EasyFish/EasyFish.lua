@@ -75,8 +75,9 @@ end
 -- Loading history
 --
 -- The Forever beta writes SavedVariables on logout but never reads them back, so every login would start empty.
--- Workaround: tools\Sync-EasyFish.ps1 copies the saved file into this addon folder as EasyFish_Saved.lua, which
--- the .toc loads as ordinary code. It defines:
+-- Workaround: tools\Sync-EasyFish.ps1 writes the saved file as a small companion addon, EasyFish_History, which the
+-- .toc loads first (OptionalDeps). It lives in its own folder so updating EasyFish never deletes it, and players
+-- without the sync simply don't have it. It defines:
 --   EasyFishSnapshot       - the full history (same lineage = same continuous history)
 --   EasyFishOrphans[id]    - sessions that were saved while history failed to load; merged in here, once each
 -- If Blizzard fixes the bug, EasyFishDB loads normally and the snapshot is only used when it is newer.
@@ -364,9 +365,18 @@ NS.ConfigureCastButton = ConfigureCastButton
 local preClickHooks = {}
 function NS.OnPreCast(fn) preClickHooks[#preClickHooks + 1] = fn end
 
-castButton:SetScript("PreClick", function()
+-- button is "EasyCast" when the click came from a double right-click, "LeftButton" from the Cast key binding
+castButton:SetScript("PreClick", function(_, button)
     if InCombatLockdown() or not db then return end
-    if not NS.PoleEquipped() and db.autoPole then
+    castButton:SetAttribute("type", "macro")
+    if button == "EasyCast" then
+        -- Double right-click: fish only. Never equips gear, and does nothing if a creature, NPC or object is
+        -- under the mouse or you have entered combat since the first click.
+        if not NS.EasyCastAllowed() then
+            castButton:SetAttribute("type", nil)   -- swallow this click
+            return
+        end
+    elseif not NS.PoleEquipped() and db.autoPole then
         local pole = NS.FindBestPole()
         if pole then
             -- Equip now; the cast this click will fail, the next one will work.
@@ -382,6 +392,11 @@ castButton:SetScript("PreClick", function()
     local macro
     for _, fn in ipairs(preClickHooks) do macro = fn() if macro then break end end
     castButton:SetAttribute("macrotext", macro or ("/cast " .. fishingSpellName))
+end)
+
+-- A swallowed click cleared the action; put it back for the next one
+castButton:SetScript("PostClick", function()
+    if not InCombatLockdown() then castButton:SetAttribute("type", "macro") end
 end)
 
 local lureButton = CreateFrame("Button", "EasyFishLureButton", UIParent, "SecureActionButtonTemplate,UIPanelButtonTemplate")
@@ -423,7 +438,7 @@ NS.Disarm = Disarm
 
 local function Arm()
     if InCombatLockdown() then return end
-    SetOverrideBindingClick(bindOwner, true, "BUTTON2", "EasyFishCastButton", "LeftButton")
+    SetOverrideBindingClick(bindOwner, true, "BUTTON2", "EasyFishCastButton", "EasyCast")
     armed = true
     if armTimer then armTimer:Cancel() end
     armTimer = C_Timer.NewTimer(db.doubleClick or 0.4, Disarm)
@@ -439,16 +454,26 @@ local function OverWorldObject()
     return GameTooltip:IsShown() and GameTooltip:GetOwner() == UIParent
 end
 
+-- Double right-click is for fishing only. It never equips gear, and it stays out of the way of everything else a
+-- right-click does: attacking, looting, talking to NPCs, and anything during combat.
+local function EasyCastAllowed()
+    return NS.PoleEquipped()
+        and not InCombatLockdown() and not UnitAffectingCombat("player")
+        and not UnitExists("mouseover")
+        and not OverWorldObject()
+        and not NS.fishingNow   -- while the line is out, a right-click is for the bobber
+end
+NS.EasyCastAllowed = EasyCastAllowed
+
 WorldFrame:HookScript("OnMouseUp", function(_, button)
     if button ~= "RightButton" or not db or not db.enabled or not pressStart then return end
     local held = GetTime() - pressStart
     pressStart = nil
     if armed then
         Disarm() -- this was the second click and has already been delivered to the cast button
-    elseif held <= (db.clickMax or 0.25) and not NS.fishingNow and not OverWorldObject() then
-        -- Never arm while the line is out (that click is for the bobber) or over an object, and wait a frame so the
-        -- engine finishes handling this release before the right button is rebound.
-        C_Timer.After(0, function() if not NS.fishingNow and not armed then Arm() end end)
+    elseif held <= (db.clickMax or 0.25) and EasyCastAllowed() then
+        -- Wait a frame so the engine finishes handling this release before the right button is rebound
+        C_Timer.After(0, function() if not armed and EasyCastAllowed() then Arm() end end)
     end
 end)
 
@@ -928,9 +953,9 @@ end)
 local general = NS.NewTab("General")
 general:Header("Casting")
 general:Check("Double right-click to cast", "enabled", Disarm,
-    "Two quick right-clicks on the world cast your fishing line. Right-drag to turn the camera still works.\n\nYou can also bind a key under Key Bindings > EasyFish.")
-general:Check("Auto-equip fishing pole when casting", "autoPole", nil,
-    "If you try to cast without a pole, the best pole in your bags is equipped for you.")
+    "Two quick right-clicks on the world cast your fishing line - only while a fishing pole is equipped, never over a creature or NPC, and never in combat. It never equips anything. Right-drag to turn the camera still works.\n\nYou can also bind a key under Key Bindings > EasyFish.")
+general:Check("Auto-equip fishing pole with the Cast key", "autoPole", nil,
+    "If you press the Cast fishing line key without a pole, the best pole in your bags is equipped for you. Double right-click never equips anything.")
 general:Slider("Double-click window", "doubleClick", 0.2, 1.0, 0.05, "%.2fs")
 general:Header("Fishing")
 general:Check("Bite sound boost", "sound", function(v) if not v then RestoreSound() end end,

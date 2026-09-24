@@ -1,0 +1,133 @@
+<h1>EasyFish</h1>
+<p><strong>Fishing, minus the busywork — built for World of Warcraft: Forever.</strong></p>
+<p>EasyFish handles everything around the bobber so you can focus on the bobber: casting, lures, poles, loot, and knowing where to fish. It learns your fishing spots as you go, finds pools and treasure chests, and tells you what your time on the water is actually worth.</p>
+<p>It never detects the bite or clicks the bobber for you. Every action is one click or key press from you, exactly as the game intends — no automation, nothing that puts your account at risk.</p>
+<hr />
+<h2>Casting made easy</h2>
+<ul>
+<li><strong>Double right-click to cast</strong> anywhere on the water. Right-drag to turn the camera, right-click the bobber and talk to NPCs all work exactly as normal.</li>
+<li><strong>Or bind a key</strong> to <em>Cast fishing line</em> (Key Bindings → EasyFish).</li>
+<li><strong>Auto-equips your best fishing pole</strong> if you try to cast without one, and <strong>swaps your weapon back</strong> with one click — or automatically the moment you target something hostile, before combat locks your gear.</li>
+<li><strong>Bite sound boost:</strong> while your line is out, sound effects go to full volume and music and ambience are muted, so the splash is impossible to miss. Your sound settings are restored when you stop.</li>
+<li><strong>Cast timer bar</strong> so you know when to recast.</li>
+<li><strong>Keyboard fishing (experimental):</strong> turns on the game's own soft-target interact, so after a cast your <em>Interact With Target</em> key grabs the bobber.</li>
+</ul>
+<h2>Smart lures and zone advice</h2>
+<ul>
+<li>The status window shows the zone's <strong>minimum fishing skill</strong>, the skill where junk stops, and your estimated junk rate.</li>
+<li><strong>Smart lure:</strong> uses the <em>weakest</em> lure in your bags that still does the job, instead of burning your best one. <strong>Auto-lure</strong> applies it for you when a cast would give junk.</li>
+<li><strong><code>/fish where</code></strong> lists the zones you can fish cleanly at your skill and level, and when the next tier opens up.</li>
+<li>Shows which fish each zone holds and the <strong>skill each one needs</strong>, including day-only and night-only fish.</li>
+<li><strong>Trainer finder:</strong> when you're close to your skill cap, EasyFish tells you where to train next — including the Expert book in Booty Bay and Nat Pagle's Artisan quest — and can drop a waypoint (TomTom supported).</li>
+</ul>
+<h2>Your personal fishing map</h2>
+<ul>
+<li>Every cast and catch is recorded with its location. Your spots appear as <strong>pins on the world map and minimap</strong>, coloured green, yellow or red by how well they fish for you.</li>
+<li>Hover a pin for casts, fish per hour, junk rate, the fish you caught there and the time of day you usually fish it.</li>
+<li><strong>Pool tracking:</strong> wreckage, debris and fish schools are recognised and marked with their own crate pins, so you can find them again. <code>/fish pools</code> lists them.</li>
+<li>No bundled database to go stale — the map is built from <em>your</em> fishing on <em>your</em> server.</li>
+</ul>
+<h2>Chests, gold and materials</h2>
+<ul>
+<li><strong>Chest and trunk alerts</strong> with a running count, and pins showing where you pulled them.</li>
+<li>Everything inside the chests you open — items <strong>and</strong> coins — counts toward your totals.</li>
+<li><strong>Gold per hour</strong> that only counts time actually spent fishing.</li>
+<li><strong>Auction house prices:</strong> EasyFish scans prices when you visit an auctioneer and uses them for its gold figures. Uses <strong>Auctionator</strong> or <strong>TradeSkillMaster</strong> prices automatically if you have them.</li>
+<li><strong>Profession materials:</strong> fish and chest contents are sorted by profession (Cooking, Alchemy, Tailoring, Leatherworking and more). Get call-outs when something your professions use drops, and use <strong><code>/fish find &lt;item&gt;</code></strong> to see where you got it.</li>
+<li><strong>Auto-loot</strong> fishing catches, and <strong>auto-sell fishing junk</strong> at any vendor.</li>
+<li>Alerts for <strong>quest fish</strong>, your own <strong>wanted list</strong>, and <strong>rare catches</strong>.</li>
+</ul>
+<h2>The dashboard</h2>
+<p>A compact, movable window showing:</p>
+<ul>
+<li>Zone, your skill and the junk verdict for where you're standing</li>
+<li>Gold per hour and session value</li>
+<li>Catches, casts and catch rate</li>
+<li>Your <strong>top 3 fish here</strong>, with icons, share of catches and price per fish</li>
+<li>Chests pulled and what they held</li>
+<li>Pole and lure status, with lure time remaining</li>
+<li>Buttons for Lure, Pole, catch Log and settings</li>
+</ul>
+<p>Everything is configurable from the <strong>minimap button</strong> or <strong><code>/fish</code></strong>, also under <em>Options → AddOns → EasyFish</em>.</p>
+<hr />
+<h2>Commands</h2>
+<table>
+<thead>
+<tr>
+<th>Command</th>
+<th>What it does</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>/fish</code></td>
+<td>Open settings</td>
+</tr>
+<tr>
+<td><code>/fish status</code></td>
+<td>What EasyFish detected (spell, skill, pole, lure)</td>
+</tr>
+<tr>
+<td><code>/fish where</code></td>
+<td>Zones you can fish cleanly right now</td>
+</tr>
+<tr>
+<td><code>/fish spots</code></td>
+<td>Your best recorded spots</td>
+</tr>
+<tr>
+<td><code>/fish pools [all]</code></td>
+<td>Pools you've found here (or everywhere)</td>
+</tr>
+<tr>
+<td><code>/fish trainer [go]</code></td>
+<td>Rank requirements and trainers; <code>go</code> sets a waypoint</td>
+</tr>
+<tr>
+<td><code>/fish find &lt;item&gt;</code></td>
+<td>Where you've fished up or looted an item</td>
+</tr>
+<tr>
+<td><code>/fish mats [all]</code></td>
+<td>Materials for your professions from this zone (or everywhere)</td>
+</tr>
+<tr>
+<td><code>/fish chests</code></td>
+<td>What your fished-up chests have contained</td>
+</tr>
+<tr>
+<td><code>/fish want &lt;fish&gt;</code></td>
+<td>Add or remove a fish from your wanted list</td>
+</tr>
+<tr>
+<td><code>/fish price [item]</code></td>
+<td>Cached auction prices, or the price used for one item</td>
+</tr>
+<tr>
+<td><code>/fish scan</code></td>
+<td>Scan the auction house (while it's open)</td>
+</tr>
+<tr>
+<td><code>/fish pole</code></td>
+<td>Swap between your weapon and fishing pole</td>
+</tr>
+<tr>
+<td><code>/fish stats</code></td>
+<td>Catch log</td>
+</tr>
+<tr>
+<td><code>/fish keyboard</code></td>
+<td>Toggle keyboard fishing</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2>Good to know</h2>
+<ul>
+<li><strong>Keeping your history on the Forever beta.</strong> The beta client currently saves addon data when you log out but doesn't load it back, so without help every login starts fresh. EasyFish includes an optional helper for Windows: run <code>EasyFish\tools\Install-EasyFishSync.ps1</code> once and your history carries over automatically, with backups. It runs silently in the background, needs no admin rights, and can be removed with <code>-Uninstall</code>. When Blizzard fixes the bug, nothing needs to change.</li>
+<li><strong>Zone skill numbers</strong> come from Classic and are a guide — Forever is Classic+ and some values may differ. Zones without data say so rather than guess. Corrections are very welcome.</li>
+<li>EasyFish is written for the Forever client (interface 16001) using the modern addon API.</li>
+</ul>
+<h2>Feedback</h2>
+<p>Found a bug, a wrong zone value or a trainer in the wrong place? Please open an issue on GitHub — a screenshot or the text of any error helps a lot.</p>
+<p><strong>Source and issues:</strong> https://github.com/Justin-Swets/Easyfish</p>

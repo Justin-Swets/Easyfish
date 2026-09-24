@@ -1,0 +1,95 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1024" height="1024" viewBox="0 0 1024 1024">
+  <defs>
+    <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#0d1730"/>
+      <stop offset="0.55" stop-color="#26406e"/>
+      <stop offset="0.85" stop-color="#9c5a52"/>
+      <stop offset="1" stop-color="#f09a4e"/>
+    </linearGradient>
+    <linearGradient id="water" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#1a7a9c"/>
+      <stop offset="0.45" stop-color="#0c4a68"/>
+      <stop offset="1" stop-color="#051e30"/>
+    </linearGradient>
+    <radialGradient id="sun" cx="0.5" cy="0.5" r="0.5">
+      <stop offset="0" stop-color="#fff0b0"/>
+      <stop offset="0.6" stop-color="#ffc85a"/>
+      <stop offset="1" stop-color="#f28c38"/>
+    </radialGradient>
+    <radialGradient id="glow" cx="0.5" cy="0.5" r="0.5">
+      <stop offset="0" stop-color="#ffb566" stop-opacity="0.55"/>
+      <stop offset="1" stop-color="#ffb566" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="red" cx="0.38" cy="0.3" r="0.8">
+      <stop offset="0" stop-color="#ff5a5f"/>
+      <stop offset="0.6" stop-color="#d11f35"/>
+      <stop offset="1" stop-color="#7d0f1e"/>
+    </radialGradient>
+    <radialGradient id="white" cx="0.38" cy="0.2" r="0.9">
+      <stop offset="0" stop-color="#ffffff"/>
+      <stop offset="0.7" stop-color="#e3e8ee"/>
+      <stop offset="1" stop-color="#9aa6b3"/>
+    </radialGradient>
+    <linearGradient id="gold" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#ffe29a"/>
+      <stop offset="0.5" stop-color="#d49a2f"/>
+      <stop offset="1" stop-color="#8a5a14"/>
+    </linearGradient>
+    <linearGradient id="goldText" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#fff1b8"/>
+      <stop offset="0.55" stop-color="#f2c04d"/>
+      <stop offset="1" stop-color="#b87a1c"/>
+    </linearGradient>
+    <linearGradient id="shade" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#03111c" stop-opacity="0"/>
+      <stop offset="0.45" stop-color="#03111c" stop-opacity="0.75"/>
+      <stop offset="1" stop-color="#03111c" stop-opacity="0.9"/>
+    </linearGradient>
+    <clipPath id="frame"><rect x="24" y="24" width="976" height="976" rx="120"/></clipPath>
+    <clipPath id="aboveWater"><rect x="0" y="0" width="1024" height="490"/></clipPath>
+    <clipPath id="bobber"><ellipse cx="512" cy="540" rx="100" ry="128"/></clipPath>
+    <clipPath id="bobberTop"><rect x="0" y="0" width="1024" height="536"/></clipPath>
+    <clipPath id="bobberDry"><rect x="0" y="0" width="1024" height="602"/></clipPath>
+  </defs>
+
+  <rect width="1024" height="1024" fill="#0a1222"/>
+  <g clip-path="url(#frame)">
+    <rect width="1024" height="490" fill="url(#sky)"/>
+    <circle cx="512" cy="490" r="330" fill="url(#glow)"/>
+    <circle cx="512" cy="500" r="205" fill="url(#sun)" clip-path="url(#aboveWater)"/>
+    <path d="M215,93.0 Q219.84,110.16 237,115.0 Q219.84,119.84 215,137.0 Q210.16,119.84 193,115.0 Q210.16,110.16 215,93.0Z" fill="#fff6d8" opacity="0.9"/><path d="M820,179.0 Q823.52,191.48 836,195.0 Q823.52,198.52 820,211.0 Q816.48,198.52 804,195.0 Q816.48,191.48 820,179.0Z" fill="#fff6d8" opacity="0.75"/><path d="M300,255.0 Q302.2,262.8 310,265.0 Q302.2,267.2 300,275.0 Q297.8,267.2 290,265.0 Q297.8,262.8 300,255.0Z" fill="#fff6d8" opacity="0.6"/>
+    <rect y="490" width="1024" height="534" fill="url(#water)"/>
+    <rect y="490" width="1024" height="6" fill="#ffd27a" opacity="0.55"/>
+    <rect x="397.0" y="640" width="230" height="7" rx="3.5" fill="#ffcf73" opacity="0.55"/><rect x="427.0" y="670" width="170" height="7" rx="3.5" fill="#ffcf73" opacity="0.45"/><rect x="457.0" y="698" width="110" height="7" rx="3.5" fill="#ffcf73" opacity="0.35"/><rect x="484.0" y="722" width="56" height="7" rx="3.5" fill="#ffcf73" opacity="0.25"/>
+    <ellipse cx="512" cy="598" rx="175" ry="36" fill="none" stroke="#bdefff" stroke-width="9" opacity="0.75"/><ellipse cx="512" cy="598" rx="265" ry="56" fill="none" stroke="#bdefff" stroke-width="7" opacity="0.45"/><ellipse cx="512" cy="598" rx="360" ry="78" fill="none" stroke="#bdefff" stroke-width="6" opacity="0.25"/>
+
+    <!-- fishing line from the top-right corner to the bobber stem -->
+    <path d="M 1010 -10 Q 820 150 516 370" fill="none" stroke="#f4f8ff" stroke-width="6" opacity="0.9"/>
+
+    <!-- bobber: shadow, then body above the waterline -->
+    <ellipse cx="512" cy="604" rx="126" ry="22" fill="#021019" opacity="0.55"/>
+    <g clip-path="url(#bobberDry)">
+      <ellipse cx="512" cy="540" rx="100" ry="128" fill="url(#white)"/>
+      <g clip-path="url(#bobber)">
+        <path d="M0 0 H1024 V546 Q512 566 0 546 Z" fill="url(#red)"/>
+      </g>
+      <ellipse cx="512" cy="540" rx="100" ry="128" fill="none" stroke="#1b0c10" stroke-width="7"/>
+      <ellipse cx="476" cy="470" rx="26" ry="42" fill="#ffffff" opacity="0.55"
+               transform="rotate(20 476 470)"/>
+    </g>
+    <!-- waterline across the bobber -->
+    <path d="M 398 602 Q 512 620 626 602" fill="none" stroke="#bdefff" stroke-width="7" opacity="0.85"/>
+    <!-- stem -->
+    <rect x="501" y="368" width="22" height="54" rx="8" fill="#3a1d12" stroke="#1b0c10" stroke-width="5"/>
+    <circle cx="512" cy="368" r="14" fill="#f2c04d" stroke="#1b0c10" stroke-width="5"/>
+    
+  <rect x="24" y="774" width="976" height="226" fill="url(#shade)"/>
+  <text x="512" y="932" text-anchor="middle" font-family="Georgia, 'Times New Roman', serif"
+        font-weight="bold" font-size="170" letter-spacing="2"
+        fill="url(#goldText)" stroke="#2a1606" stroke-width="10" paint-order="stroke fill">EasyFish</text>
+  </g>
+
+  <!-- gold frame -->
+  <rect x="24" y="24" width="976" height="976" rx="120" fill="none" stroke="url(#gold)" stroke-width="18"/>
+  <rect x="40" y="40" width="944" height="944" rx="106" fill="none" stroke="#1a1004" stroke-width="4" opacity="0.7"/>
+</svg>

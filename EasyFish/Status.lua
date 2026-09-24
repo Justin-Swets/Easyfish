@@ -119,6 +119,35 @@ local function TopFish()
     return list, sum, source
 end
 
+-- The three top-fish rows, ready to display. Built only when something changed (NS.gen) or you changed map, and
+-- rebuilt on the next refresh while any item's price or icon has not been loaded by the game yet.
+local topCache = { gen = -1 }
+local function TopFishRows()
+    local map = C_Map and safe(C_Map.GetBestMapForUnit, "player")
+    if topCache.gen == NS.gen and topCache.map == map and topCache.complete then return topCache end
+    local list, sum, source = TopFish()
+    local rows, complete = {}, true
+    for i = 1, math.min(#list, 3) do
+        local it = list[i]
+        local req = NS.FISH_SKILL[it.name]
+        local v, src = NS.PriceOf(it.name)
+        local _, _, _, _, tex = NS.GetItemInfoInstant(it.name)
+        if not NS.GetItemInfo(it.name) then complete = false end
+        rows[i] = {
+            name  = Short(it.name) .. (req and (" |cff777777" .. req .. "|r") or ""),
+            count = ("x%d |cffaaaaaa%d%%|r"):format(it.n, sum > 0 and it.n / sum * 100 or 0),
+            value = v > 0 and (NS.FormatMoney(v) .. (src == "ah" and " |cff777777ah|r" or " |cff777777v|r")) or "",
+            tex   = tex,
+        }
+    end
+    topCache = {
+        gen = NS.gen, map = map, complete = complete, rows = rows,
+        header = source == "here" and "TOP FISH HERE" or (#list > 0 and "TOP FISH THIS SESSION" or "TOP FISH HERE"),
+    }
+    return topCache
+end
+NS.TopFishRows = TopFishRows   -- exposed for tests/test_core.py
+
 local function ExpectedLine()
     local fish = NS.ExpectedFish()
     if not fish then return nil end
@@ -208,18 +237,16 @@ function NS.StatusHeader(y)
     y = PlaceRule(rule2, y)
 
     -- Top fish
-    local list, sum, source = TopFish()
-    topHeader:SetText(source == "here" and "TOP FISH HERE" or (#list > 0 and "TOP FISH THIS SESSION" or "TOP FISH HERE"))
+    local top = TopFishRows()
+    topHeader:SetText(top.header)
     y = Place(topHeader, y, 0, W) - 13
     for i = 1, 3 do
-        local row, it = fishRows[i], list[i]
+        local row, it = fishRows[i], top.rows[i]
         if it then
-            local req = NS.FISH_SKILL[it.name]
-            row.name:SetText(Short(it.name) .. (req and (" |cff777777" .. req .. "|r") or ""))
-            row.count:SetText(("x%d |cffaaaaaa%d%%|r"):format(it.n, sum > 0 and it.n / sum * 100 or 0))
-            local v, src = NS.PriceOf(it.name)
-            row.value:SetText(v > 0 and (NS.FormatMoney(v) .. (src == "ah" and " |cff777777ah|r" or " |cff777777v|r")) or "")
-            local _, _, _, _, tex = NS.GetItemInfoInstant(it.name)
+            local tex = it.tex
+            row.name:SetText(it.name)
+            row.count:SetText(it.count)
+            row.value:SetText(it.value)
             if tex then row.icon:SetTexture(tex) Place(row.icon, y, 0) else row.icon:Hide() end
             Place(row.name, y, tex and 15 or 0, W * 0.55 - (tex and 15 or 0))
             Place(row.count, y, W * 0.55, W * 0.17)

@@ -79,3 +79,12 @@ the client notices the new addon folder, and keep *EasyFish History* enabled in 
 ## Development
 The addon lives in `EasyFish/`. Symlink or copy that folder into `Interface\AddOns\`.
 Modules load in the order listed in `EasyFish.toc`; each module only depends on `EasyFish.lua` (the core) and `Data.lua`.
+
+### Tests
+The addon can be run outside the game against a simulated WoW API (`tests/wow_stub.lua`), with Python and
+`pip install lupa`:
+
+- `python tests/test_core.py`: behaviour tests (double right-click safety, dashboard caching, fishing spots)
+- `python tests/smoke.py`: runs every `/fish` command, settings tab and event handler and reports any error the
+  addon's protective `pcall`s would otherwise hide in game
+- `python tests/perf.py`: time and memory per status-window and minimap update, for a small and a large history

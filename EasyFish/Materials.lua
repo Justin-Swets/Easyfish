@@ -284,7 +284,9 @@ end, "what your fished-up chests have contained")
 ------------------------------------------------------------------------------------------------------------------------
 -- Dashboard row: top materials here for your professions
 ------------------------------------------------------------------------------------------------------------------------
-function NS.MatsHereLine()
+-- Sorting every material you have recorded is the most expensive thing on the dashboard, so it is cached until
+-- something changes (a catch, a chest, a zone change, a profession ticked).
+NS.MatsHereLine = NS.Memo(function()
     local list = SortedMats(GetRealZoneText(), "tracked")
     if #list == 0 then return nil end
     local out = {}
@@ -292,7 +294,7 @@ function NS.MatsHereLine()
         out[#out + 1] = ("%s x%d"):format(list[i].name:gsub("^Raw ", ""), list[i].n)
     end
     return "|cff88ff88Mats here:|r " .. table.concat(out, ", ")
-end
+end)
 
 ------------------------------------------------------------------------------------------------------------------------
 -- Heatmap pin tooltip: what a spot yields for you

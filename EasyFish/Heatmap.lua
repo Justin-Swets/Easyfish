@@ -55,7 +55,23 @@ local function GetSpot(create)
 end
 
 local currentSpot, castStart
-function NS.CurrentSpot() return currentSpot or GetSpot(true) end
+-- The spot of the current/last cast. Never creates one: spots only come from actually fishing somewhere.
+function NS.CurrentSpot() return currentSpot or GetSpot(false) end
+-- The spot where you are standing, if you have fished there
+function NS.SpotHere() return (GetSpot(false)) end
+
+-- Earlier versions created an empty spot wherever the status window looked while you walked around. Remove spots
+-- that were never fished (no casts, nothing caught, no chests) so they stop taking up space.
+local function PruneEmptySpots()
+    for mapID, spots in pairs(NS.db.spots) do
+        for key, spot in pairs(spots) do
+            if (spot.casts or 0) == 0 and not next(spot.items or {}) and (spot.chests or 0) == 0 then
+                spots[key] = nil
+            end
+        end
+        if not next(spots) then NS.db.spots[mapID] = nil end
+    end
+end
 NS.On("UNIT_SPELLCAST_CHANNEL_START", function(_, _, spellID)
     if not NS.db.heatmap or not NS.IsFishingSpell(spellID) then return end
     local spot = GetSpot(true)
@@ -349,13 +365,13 @@ ticker:SetScript("OnUpdate", function(self, elapsed)
     UpdateMinimapPins()
 end)
 
-function NS.ChestsHere()
+NS.ChestsHere = NS.Memo(function()
     local mapID = C_Map and safe(C_Map.GetBestMapForUnit, "player")
     local spots = mapID and NS.db.spots[mapID]
     local n = 0
     if spots then for _, spot in pairs(spots) do n = n + (spot.chests or 0) end end
     return n
-end
+end)
 
 ------------------------------------------------------------------------------------------------------------------------
 -- Reports
@@ -412,6 +428,6 @@ tab:Slider("Minimum casts before a spot is shown", "pinMinCasts", 1, 20, 1, "%d"
 tab:Button("Best spots", BestSpots, 120)
 tab:Button("Clear spot history", function() wipe(NS.db.spots) mmMapID = nil RefreshWorldPins() Print("spot history cleared") end, 140)
 
-NS.On("ADDON_LOADED", InstallWorldProvider)
+NS.On("ADDON_LOADED", function() PruneEmptySpots() InstallWorldProvider() end)
 NS.On("PLAYER_ENTERING_WORLD", function() mmMapID = nil InstallWorldProvider() end)
 NS.OnCatch(function() mmMapID = nil end) -- new spot may have been created

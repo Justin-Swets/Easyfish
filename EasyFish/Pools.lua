@@ -166,15 +166,18 @@ end, "[all] pools you have found here (or everywhere)")
 ------------------------------------------------------------------------------------------------------------------------
 -- Dashboard
 ------------------------------------------------------------------------------------------------------------------------
+-- Counting pools means looking at every recorded spot, so it is cached until something changes
+local PoolsInZone = NS.Memo(function() return #PoolList(true) end)
+
 function NS.PoolLine()
     if not NS.db.poolTrack then return nil end
-    local spot = NS.CurrentSpot and NS.CurrentSpot()
+    local spot = NS.SpotHere and NS.SpotHere()   -- where you stand; looking never creates a spot
     if spot and NS.IsPoolSpot(spot) then
         return ("|cff44ff44Pool here:|r %s, %d catches"):format(NS.PoolLabel(spot), spot.pool or 0)
     end
-    local here = PoolList(true)
-    if #here == 0 then return nil end
-    return ("|cff88ccffPools in this zone:|r %d known |cffaaaaaa(see map)|r"):format(#here)
+    local here = PoolsInZone()
+    if here == 0 then return nil end
+    return ("|cff88ccffPools in this zone:|r %d known |cffaaaaaa(see map)|r"):format(here)
 end
 
 ------------------------------------------------------------------------------------------------------------------------

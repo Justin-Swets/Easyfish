@@ -16,3 +16,4 @@ ignore:
   - .github
   - branding
   - curseforge
+  - tests

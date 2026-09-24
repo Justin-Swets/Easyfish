@@ -204,6 +204,29 @@ local catchHandlers = {}
 function NS.OnCatch(fn) catchHandlers[#catchHandlers + 1] = fn end
 
 ------------------------------------------------------------------------------------------------------------------------
+-- Cached results. The status window refreshes every second, but most of what it shows (top fish, materials, pools,
+-- chests) only changes when something happens. Every game event, slash command and settings change bumps NS.gen;
+-- NS.Memo(fn) recomputes only when NS.gen has moved on or you are on a different map.
+------------------------------------------------------------------------------------------------------------------------
+NS.gen = 0
+function NS.Invalidate() NS.gen = NS.gen + 1 end
+
+function NS.Memo(fn)
+    local gen, map, a, b, c = -1, nil, nil, nil, nil
+    return function()
+        local here = C_Map and C_Map.GetBestMapForUnit and C_Map.GetBestMapForUnit("player")
+        if gen ~= NS.gen or map ~= here then
+            gen, map = NS.gen, here
+            a, b, c = fn()
+        end
+        return a, b, c
+    end
+end
+
+-- Zone changes only need to reach the event handler, which invalidates the cache
+NS.On("ZONE_CHANGED_NEW_AREA", function() end)
+
+------------------------------------------------------------------------------------------------------------------------
 -- Small helpers (API compat shims: Forever uses the retail-style C_* namespaces)
 ------------------------------------------------------------------------------------------------------------------------
 local function Print(msg, ...)
@@ -867,7 +890,7 @@ function NS.NewTab(name)
         cb.Text:SetText(label)
         cb.Text:SetFontObject("GameFontHighlight")
         cb.tooltipText = tooltip
-        cb:SetScript("OnClick", function(cbself) set(cbself:GetChecked() and true or false) end)
+        cb:SetScript("OnClick", function(cbself) set(cbself:GetChecked() and true or false) NS.Invalidate() end)
         cb:SetScript("OnEnter", ShowTip)
         cb:SetScript("OnLeave", function() GameTooltip:Hide() end)
         self.refreshers[#self.refreshers + 1] = function() cb:SetChecked(get()) end
@@ -887,6 +910,7 @@ function NS.NewTab(name)
         s:SetScript("OnValueChanged", function(sself, value)
             value = math.floor(value / step + 0.5) * step
             db[key] = value
+            NS.Invalidate()
             sself.Text:SetText(label .. ": " .. fmt:format(value))
             if onChange then onChange(value) end
         end)
@@ -916,7 +940,7 @@ function NS.NewTab(name)
         box:SetPoint("TOPLEFT", 16, self.y - 22)
         box:SetSize(width or 220, 20)
         box:SetAutoFocus(false)
-        box:SetScript("OnEnterPressed", function(bself) set(strtrim(bself:GetText() or "")) bself:ClearFocus() end)
+        box:SetScript("OnEnterPressed", function(bself) set(strtrim(bself:GetText() or "")) NS.Invalidate() bself:ClearFocus() end)
         box:SetScript("OnEscapePressed", function(bself) bself:ClearFocus() end)
         self.refreshers[#self.refreshers + 1] = function() box:SetText(get() or "") end
         self.y = self.y - 50
@@ -1003,6 +1027,7 @@ end
 NS.fishingNow = false
 
 EF:SetScript("OnEvent", function(self, event, ...)
+    NS.Invalidate()   -- anything cached may have changed
     if event == "ADDON_LOADED" then
         if ... ~= ADDON then return end
         InitDB()
@@ -1148,6 +1173,7 @@ end, "[all] clear the session (or all-time) catch log")
 SLASH_EASYFISH1 = "/fish"
 SLASH_EASYFISH2 = "/easyfish"
 SlashCmdList.EASYFISH = function(input)
+    NS.Invalidate()
     input = strtrim(input or "")
     local cmd, rest = input:match("^(%S*)%s*(.-)$")
     cmd = cmd:lower()

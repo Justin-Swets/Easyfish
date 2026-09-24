@@ -10,3 +10,6 @@ EasyFish/EasyFish_Saved.lua
 
 # packager build output
 .release/
+
+# python test cache
+__pycache__/

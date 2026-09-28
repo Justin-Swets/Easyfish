@@ -136,5 +136,48 @@ check("price while item info missing", run("NS.TopFishRows().rows[1].value"), ""
 ex("LOADED = true")
 check("price once the game has the item (no event needed)", run("NS.TopFishRows().rows[1].value") != "", True)
 
+print("\n=== status window follows the fishing pole")
+lua = new(); run = lua.eval; ex = lua.execute
+ex('''
+function shown() return frames.EasyFishStatus:IsShown() end
+function equip(pole) S.pole = pole fire("PLAYER_EQUIPMENT_CHANGED", 16, false) end
+S.pole = false
+fire("PLAYER_ENTERING_WORLD")
+''')
+check("login without a pole: window shown", run("shown()"), False)
+ex("equip(true)")
+check("equip the pole: window shown", run("shown()"), True)
+ex("equip(false)")
+check("take the pole off: window shown", run("shown()"), False)
+ex('fire("PLAYER_EQUIPMENT_CHANGED", 1, false)')   # a helmet swap must not matter
+check("unrelated gear change: window shown", run("shown()"), False)
+
+ex("NS.ToggleWindow()")
+check("minimap right-click without a pole: window shown", run("shown()"), True)
+ex("equip(true) equip(false)")
+check("pole on and off again: manual show has ended", run("shown()"), False)
+ex("equip(true) NS.ToggleWindow()")
+check("hidden by hand while holding the pole", run("shown()"), False)
+ex('fire("BAG_UPDATE_DELAYED") local f = frames.EasyFishStatus')
+check("...and it stays hidden (no pole change)", run("shown()"), False)
+
+ex("equip(false) NS.db.autoShow = false NS.ApplyVisibility()")
+check("'only while a pole is equipped' off: shown without a pole", run("shown()"), True)
+ex("NS.db.showFrame = false NS.ApplyVisibility()")
+check("'show status window' off: shown", run("shown()"), False)
+ex("equip(true)")
+check("'show status window' off, pole on: shown", run("shown()"), False)
+ex("NS.db.showFrame, NS.db.autoShow = true, true equip(false)")
+
+print("\n=== equipping the pole mid-fight (the window holds a secure button)")
+ex('''
+rawset(frames.EasyFishStatus, "IsProtected", function() return true end)
+S.combat = true
+equip(true)
+''')
+check("in combat: window left alone", run("shown()"), False)
+ex('S.combat = false fire("PLAYER_REGEN_ENABLED")')
+check("combat over: window shown", run("shown()"), True)
+
 print(f"\n{sum(results)}/{len(results)} passed")
 sys.exit(0 if all(results) else 1)

@@ -294,7 +294,9 @@ end
 -- Settings: General tab already exists; add the toggle there via the options API
 local tab = NS.NewTab("Window")
 tab:Header("Status window")
-tab:Check("Show status window", "showFrame", NS.UpdateUI)
+tab:Check("Show status window", "showFrame", NS.ApplyVisibility)
+tab:Check("Only while a fishing pole is equipped", "autoShow", NS.ApplyVisibility,
+    "The window appears when you equip a fishing pole and hides when you take it off. Untick to keep it on screen all the time.\n\nRight-click the minimap button (or /fish show) to show or hide it by hand; that lasts until the pole next goes on or comes off.")
 tab:Check("Lock status window", "locked")
 tab:Check("Also list every expected fish for the zone", "showExpected", NS.UpdateUI,
     "Adds a line with the Classic tier fish for this zone and the skill each needs. Top 3 comes from what you actually catch.")

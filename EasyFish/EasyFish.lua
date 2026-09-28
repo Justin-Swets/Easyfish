@@ -29,7 +29,8 @@ NS.DEFAULTS = {
     autoLoot       = true,
     lureRemind     = true,
     autoPole       = true,   -- equip a pole automatically when you try to cast without one
-    showFrame      = true,
+    showFrame      = true,   -- use the status window at all
+    autoShow       = true,   -- ...only while a fishing pole is equipped
     locked         = false,
     framePos       = nil,
     minimap        = { show = true, angle = 220 },
@@ -692,10 +693,54 @@ cfgButton:SetPoint("BOTTOMLEFT", statsButton, "BOTTOMRIGHT", 4, 0)
 cfgButton:SetText("...")
 
 
-local function UpdateUI()
+------------------------------------------------------------------------------------------------------------------------
+-- When the window is on screen.
+--   showFrame  - use the status window at all
+--   autoShow   - only while a fishing pole is equipped (default), so it isn't in the way the rest of the time
+-- The minimap right-click and /fish show override that by hand until the pole next goes on or comes off.
+-- The window holds a secure button (Lure), so once the game treats it as protected it can only be shown, hidden or
+-- resized out of combat; a change that happens mid-fight is applied when combat ends.
+------------------------------------------------------------------------------------------------------------------------
+local manualShow, pendingVisibility, lastPole = nil, false, nil
+local UpdateUI
+
+local function Locked() return InCombatLockdown() and ui:IsProtected() end
+
+local function WindowWanted()
+    if manualShow ~= nil then return manualShow end
+    return db.showFrame and (not db.autoShow or NS.PoleEquipped()) and true or false
+end
+
+local function ApplyVisibility()
     if not db then return end
-    if not db.showFrame then ui:Hide() return end
-    ui:Show()
+    if Locked() then pendingVisibility = true return end
+    pendingVisibility = false
+    if WindowWanted() then
+        if not ui:IsShown() then ui:Show() end
+        UpdateUI()
+    elseif ui:IsShown() then
+        ui:Hide()
+    end
+end
+NS.ApplyVisibility = ApplyVisibility
+
+-- Equipping or taking off the pole ends any manual override
+local function PoleChanged()
+    local pole = NS.PoleEquipped()
+    if pole ~= lastPole then
+        lastPole, manualShow = pole, nil
+        ApplyVisibility()
+    end
+end
+NS.On("PLAYER_EQUIPMENT_CHANGED", PoleChanged)
+
+function NS.ToggleWindow()
+    manualShow = not ui:IsShown()
+    ApplyVisibility()
+end
+
+function UpdateUI()
+    if not db or not ui:IsShown() then return end
     local y = -22
     if NS.StatusHeader then
         local ok, ny = pcall(NS.StatusHeader, y)
@@ -713,7 +758,7 @@ local function UpdateUI()
             line.fs:Hide()
         end
     end
-    ui:SetHeight(-y + 34 + (NS.extraBottom or 0))
+    if not Locked() then ui:SetHeight(-y + 34 + (NS.extraBottom or 0)) end
 end
 NS.UpdateUI = UpdateUI
 
@@ -966,8 +1011,7 @@ cfgButton:SetScript("OnClick", ToggleOptions)
 
 minimapButton:SetScript("OnClick", function(_, button)
     if button == "RightButton" then
-        db.showFrame = not db.showFrame
-        UpdateUI()
+        NS.ToggleWindow()
     else
         ToggleOptions()
     end
@@ -987,9 +1031,6 @@ general:Check("Bite sound boost", "sound", function(v) if not v then RestoreSoun
 general:Check("Auto-loot catches", "autoLoot")
 general:Check("Remind me when my lure runs out", "lureRemind")
 general:Slider("Music while fishing", "musicVolume", 0, 1, 0.1, "%.0f")
-general:Header("Display")
-general:Check("Show status window", "showFrame", UpdateUI)
-general:Check("Lock status window", "locked")
 general:Header("Display")
 general:Check("Show minimap button",
     function() return db.minimap.show end,
@@ -1061,7 +1102,8 @@ EF:SetScript("OnEvent", function(self, event, ...)
         ConfigureCastButton()
         ConfigureLureButton()
         if session.started == 0 then session.started = GetTime() end
-        UpdateUI()
+        lastPole = nil   -- re-check the pole and show or hide the window to match
+        PoleChanged()
 
     elseif event == "PLAYER_LOGOUT" then
         RestoreSound()
@@ -1071,6 +1113,7 @@ EF:SetScript("OnEvent", function(self, event, ...)
     elseif event == "PLAYER_REGEN_ENABLED" then
         ConfigureCastButton()  -- re-apply anything we could not touch during combat
         ConfigureLureButton()
+        if pendingVisibility then ApplyVisibility() end
 
     elseif event == "BAG_UPDATE_DELAYED" then
         ConfigureLureButton()
@@ -1151,7 +1194,7 @@ NS.AddCommand("toggle", function() db.enabled = not db.enabled Disarm() Print("d
 NS.AddCommand("sound", function() db.sound = not db.sound Print("bite sound boost %s", OnOff(db.sound)) if not db.sound then RestoreSound() end end, "bite sound boost on/off")
 NS.AddCommand("loot", function() db.autoLoot = not db.autoLoot Print("auto-loot %s", OnOff(db.autoLoot)) end, "auto-loot on/off")
 NS.AddCommand("pole", TogglePole, "swap weapon <-> fishing pole")
-NS.AddCommand("show", function() db.showFrame = not db.showFrame UpdateUI() end, "status window on/off")
+NS.AddCommand("show", NS.ToggleWindow, "show/hide the status window now (until the pole next goes on or off)")
 NS.AddCommand("minimap", function() db.minimap.show = not db.minimap.show UpdateMinimapButton() end, "minimap button on/off")
 NS.AddCommand("spell", function(rest)
     db.spellOverride = rest or ""

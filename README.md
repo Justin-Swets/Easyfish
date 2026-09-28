@@ -58,6 +58,9 @@ the client notices the new addon folder, and keep *EasyFish History* enabled in 
   combat starts, so this is the last legal moment).
 - **Gold/hour** — vendor value of the session; uses Auctionator / TSM prices if you have them.
 - Bite sound boost, auto-loot, catch log, pole/lure/log buttons on the status window.
+- The **status window** appears when you equip a fishing pole and hides when you take it off (Window tab →
+  *Only while a fishing pole is equipped*; untick to keep it up). Right-click the minimap button or `/fish show` to
+  show/hide it by hand until the pole next goes on or off.
 
 ## Commands
 ```
@@ -84,6 +87,7 @@ Modules load in the order listed in `EasyFish.toc`; each module only depends on 
 The addon can be run outside the game against a simulated WoW API (`tests/wow_stub.lua`), with Python and
 `pip install lupa`:
 
+- `python tests/check_syntax.py`: compiles every addon file with real Lua 5.1 (the compiler WoW uses)
 - `python tests/test_core.py`: behaviour tests (double right-click safety, dashboard caching, fishing spots)
 - `python tests/smoke.py`: runs every `/fish` command, settings tab and event handler and reports any error the
   addon's protective `pcall`s would otherwise hide in game

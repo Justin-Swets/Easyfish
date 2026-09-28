@@ -46,7 +46,7 @@ It never detects the bite or clicks the bobber for you. Every action is one clic
 
 ## The dashboard
 
-A compact, movable window showing:
+A compact, movable window that **appears when you equip your fishing pole and gets out of the way when you put it back** (prefer it on screen all the time? One tick in settings). It shows:
 
 - Zone, your skill and the junk verdict for where you're standing
 - Gold per hour and session value

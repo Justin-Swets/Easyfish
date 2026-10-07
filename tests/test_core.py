@@ -18,7 +18,7 @@ def check(label, got, want):
 
 
 HELPERS = r'''
-function reset(pole, mouseover, combat) S.pole, S.mouseover, S.combat = pole, mouseover, combat; S.armedWith = nil; S.equipped = {}; S.queue = {} end
+function reset(pole, mouseover, combat) NS.Disarm() S.pole, S.mouseover, S.combat = pole, mouseover, combat; S.armedWith = nil; S.equipped = {}; S.queue = {} end
 function rightClick()
     for _, fn in ipairs(WorldFrame.hooks.OnMouseDown) do fn(WorldFrame, "RightButton") end
     S.t = S.t + 0.1
@@ -82,6 +82,24 @@ check("pole removed before the 2nd click: casts", run("castClick('EasyCast')"), 
 check("pole removed before the 2nd click: equips", run("#S.equipped"), 0)
 ex("reset(false, false, false)"); ex("castClick('LeftButton')")
 check("Cast key without a pole: equips it (deliberate)", run("#S.equipped"), 1)
+
+print("\n=== double right-click on pools and other objects")
+ex("reset(true, false, false) S.object = 'Floating Wreckage'"); ex("rightClick()")
+check("over a fishing pool: arms", run("S.armedWith"), "EasyCast")
+check("over a fishing pool: second click casts", run("castClick('EasyCast')"), True)
+ex("reset(true, false, false) S.object = 'Oily Blackmouth School'"); ex("rightClick()")
+check("over a fish school: arms", run("S.armedWith"), "EasyCast")
+ex("reset(true, false, false) S.object = 'Peacebloom'"); ex("rightClick()")
+check("over a herb: arms", run("S.armedWith"), None)
+ex("reset(true, false, false) S.object = nil S.casting = 'Herb Gathering'"); ex("rightClick()")
+check("while gathering a herb: arms", run("S.armedWith"), None)
+ex("S.casting = nil S.object = nil")
+
+print("\n=== window setting from older versions is reset once")
+lua = load_addon(before="EasyFishSnapshot = { showFrame = false, totalCasts = 5, lineage = 'abc', saves = 3 }")
+check("old 'hidden' window setting turned back on", lua.eval("NS.db.showFrame"), True)
+lua = load_addon(before="EasyFishSnapshot = { showFrame = false, windowSettingsV2 = true, lineage = 'abc', saves = 3 }")
+check("but a choice made in 2.8.7+ is kept", lua.eval("NS.db.showFrame"), False)
 
 print("\n=== looking at the dashboard never creates spots")
 lua = new(); run = lua.eval; ex = lua.execute

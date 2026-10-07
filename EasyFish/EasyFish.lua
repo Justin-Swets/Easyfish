@@ -162,6 +162,11 @@ local function InitDB()
     db = EasyFishDB
     CopyDefaults(db, NS.DEFAULTS)
     NS.db = db
+    -- Before 2.8.6, showFrame was flipped by the minimap right-click and /fish show, so "off" usually just meant
+    -- "hidden at the time". It now means "never show the window", so start everyone from "on" once.
+    if not db.windowSettingsV2 then
+        db.showFrame, db.windowSettingsV2 = true, true
+    end
     db.lineage = db.lineage or NewLineage()
     db.saves = db.saves or 0
     db.mergedOrphans = db.mergedOrphans or {}
@@ -473,18 +478,31 @@ WorldFrame:HookScript("OnMouseDown", function(_, button)
     pressStart = GetTime()
 end)
 
--- True when the cursor is over a world object (bobber, node, NPC): the game shows its tooltip owned by UIParent.
-local function OverWorldObject()
-    return GameTooltip:IsShown() and GameTooltip:GetOwner() == UIParent
+-- Name of the world object under the cursor (pool, herb, chest...), when the game is showing its tooltip.
+-- "" if the name can't be read; nil when there is no object.
+local function WorldObjectName()
+    if not (GameTooltip:IsShown() and GameTooltip:GetOwner() == UIParent) then return nil end
+    local line = _G.GameTooltipTextLeft1
+    local text = line and safe(line.GetText, line)
+    if type(text) ~= "string" or (issecretvalue and issecretvalue(text)) then return "" end
+    return text
+end
+
+-- A fishing pool is what you cast at, so it never gets in the way. Any other object (herb, chest, mailbox) does.
+local function BlockingObject()
+    local name = WorldObjectName()
+    if not name then return false end
+    return not (NS.PoolInfo and NS.PoolInfo(name))
 end
 
 -- Double right-click is for fishing only. It never equips gear, and it stays out of the way of everything else a
--- right-click does: attacking, looting, talking to NPCs, and anything during combat.
+-- right-click does: attacking, looting, gathering, talking to NPCs, and anything during combat.
 local function EasyCastAllowed()
     return NS.PoleEquipped()
         and not InCombatLockdown() and not UnitAffectingCombat("player")
         and not UnitExists("mouseover")
-        and not OverWorldObject()
+        and not BlockingObject()
+        and not safe(UnitCastingInfo, "player")   -- e.g. the first click started gathering a herb
         and not NS.fishingNow   -- while the line is out, a right-click is for the bobber
 end
 NS.EasyCastAllowed = EasyCastAllowed

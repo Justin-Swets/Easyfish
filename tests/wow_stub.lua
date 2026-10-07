@@ -140,6 +140,12 @@ UnitChannelInfo = function() return nil end
 GetMoney = function() return 0 end
 IsSpellKnown = function() return true end
 GetBindingKey = function() return nil end            -- nothing bound
+UnitCastingInfo = function() return S.casting end     -- set S.casting = "Herb Gathering" to simulate a cast
+issecretvalue = function() return false end
+-- Object under the cursor: S.object = "Floating Wreckage" makes the game show that object's tooltip
+GameTooltipTextLeft1 = { GetText = function() return S.object end }
+rawset(GameTooltip, "IsShown", function() return S.object ~= nil end)
+rawset(GameTooltip, "GetOwner", function() return UIParent end)
 Auctionator, TSM_API = false, false                   -- optional addons not installed
 C_AuctionHouse = { ReplicateItems = function() end, GetNumReplicateItems = function() return 0 end }
 

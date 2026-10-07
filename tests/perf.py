@@ -18,9 +18,12 @@ ADDON = os.path.join(ROOT, "EasyFish")
 EXPECTED_GLOBALS = re.compile(r"^(EasyFish.*|SLASH_EASYFISH\d|BINDING_.*|EasyFishDB)$")
 
 
-def load_addon():
+def load_addon(before=None):
+    """before: Lua run after the stub and before the addon loads (e.g. to give it saved data)."""
     lua = LuaRuntime(unpack_returned_tuples=True)
     lua.execute(open(os.path.join(ROOT, "tests", "wow_stub.lua"), encoding="utf-8").read())
+    if before:
+        lua.execute(before)
     lua.execute("STUB_BEFORE = {} for k in pairs(_G) do STUB_BEFORE[k] = true end")
     lua.execute("NS = {}")
     loader = lua.eval("function(src, name) local f, e = loadstring(src, name) if not f then error(e) end return f end")

@@ -192,9 +192,18 @@ if ($Watch) {
     $watcher.IncludeSubdirectories = $true
     $watcher.NotifyFilter = [IO.NotifyFilters]'LastWrite, FileName, Size'
     Write-Host "Watching for EasyFish saves. Leave this running while you play."
+    $lastSynced = Get-Date   # the sync above covered everything saved before now
     while ($true) {
         $change = $watcher.WaitForChanged([IO.WatcherChangeTypes]::All, 15000)
         if ($change.TimedOut) {
+            # Windows can drop change notifications; catch any save the watcher missed by its timestamp
+            $newest = Get-ChildItem (Join-Path $WowRoot "WTF\Account") -Recurse -Filter "EasyFish.lua" -ErrorAction SilentlyContinue |
+                Sort-Object LastWriteTime -Descending | Select-Object -First 1
+            if ($newest -and $newest.LastWriteTime -gt $lastSynced) {
+                $lastSynced = $newest.LastWriteTime
+                try { Sync-All } catch { Write-Host "sync failed: $_" }
+                continue
+            }
             # Put the history back if it went missing (deleted by hand, or an old EasyFish install was updated)
             $legacyNeeded = (Test-Path (Join-Path $AddonDir "EasyFish.toc")) -and
                 (Select-String -Path (Join-Path $AddonDir "EasyFish.toc") -Pattern "EasyFish_Saved.lua" -SimpleMatch -Quiet) -and
@@ -205,6 +214,7 @@ if ($Watch) {
             continue
         }
         Start-Sleep -Milliseconds 400   # let the client finish writing
+        $lastSynced = Get-Date
         try { Sync-All } catch { Write-Host "sync failed: $_" }
     }
 }

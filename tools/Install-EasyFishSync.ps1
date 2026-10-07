@@ -35,8 +35,12 @@ if ($Uninstall) {
 
 if (-not (Test-Path (Join-Path $WowRoot "WTF"))) { throw "No WTF folder under $WowRoot - pass -WowRoot with your Forever client folder." }
 
-# Reinstalling: stop the running watcher first so the new one replaces it
+# Reinstalling: stop the running watcher first so the new one replaces it. Stopping the task does not always end
+# the PowerShell it started, so end any watcher still running.
 Stop-ScheduledTask -TaskName $TaskName -ErrorAction SilentlyContinue
+Get-CimInstance Win32_Process -Filter "Name='powershell.exe'" |
+    Where-Object { $_.CommandLine -like "*Sync-EasyFish.ps1*-Watch*" } |
+    ForEach-Object { Stop-Process -Id $_.ProcessId -Force -ErrorAction SilentlyContinue }
 
 New-Item -ItemType Directory -Force $Home_ | Out-Null
 Copy-Item (Join-Path $PSScriptRoot "Sync-EasyFish.ps1") $Script -Force

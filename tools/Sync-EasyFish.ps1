@@ -1,9 +1,9 @@
 <#
 .SYNOPSIS
-    Keeps EasyFish history across logins on the World of Warcraft: Forever beta.
+    Keeps EasyFish history across logins on World of Warcraft: Forever.
 
 .DESCRIPTION
-    The Forever beta client writes SavedVariables when you log out but never reads them back, so every login
+    Early Forever clients wrote SavedVariables when you logged out but never read them back, so every login
     starts with empty history. This script writes EasyFish's saved data as a small companion addon,
     Interface\AddOns\EasyFish_History, which EasyFish loads first. It has its own folder so updating EasyFish (by
     hand or through the CurseForge app) never deletes it. Restart the game once after the first sync so the client

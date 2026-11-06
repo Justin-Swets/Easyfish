@@ -75,7 +75,7 @@ end
 ------------------------------------------------------------------------------------------------------------------------
 -- Loading history
 --
--- The Forever beta writes SavedVariables on logout but never reads them back, so every login would start empty.
+-- Early Forever clients wrote SavedVariables on logout but never read them back, so every login started empty.
 -- Workaround: tools\Sync-EasyFish.ps1 writes the saved file as a small companion addon, EasyFish_History, which the
 -- .toc loads first (OptionalDeps). It lives in its own folder so updating EasyFish never deletes it, and players
 -- without the sync simply don't have it. It defines:
@@ -186,7 +186,7 @@ end
 
 local function ReportLoad()
     if NS.loadSource == "none" then
-        NS.Print("|cffff8800history did not load|r - this is the Forever beta SavedVariables bug. This session is still saved " ..
+        NS.Print("|cffff8800history did not load|r - the game didn't load your saved data. This session is still saved " ..
               "and will be merged back in: run |cffffff00tools\\Sync-EasyFish.ps1|r (or install the background sync) before your next login.")
     elseif NS.mergedCount > 0 then
         NS.Print("history restored, and %d session%s saved while it was missing merged back in.",

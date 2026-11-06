@@ -10,7 +10,7 @@ key; everything else is information.
 3. `/reload` or restart, enable it on the AddOns screen. `/fish` opens settings; there is also a minimap button.
 
 ## If your history stops loading
-The live client keeps your history by itself, so most players need nothing here. The Forever beta client wrote
+The live client keeps your history by itself, so most players need nothing here. Early Forever clients wrote
 SavedVariables when you logged out but never read them back. If every login starts with no history,
 `tools\Sync-EasyFish.ps1` works around it: it writes your saved data as a small
 companion addon, `Interface\AddOns\EasyFish_History`, which EasyFish loads first. It has its own folder, so updating

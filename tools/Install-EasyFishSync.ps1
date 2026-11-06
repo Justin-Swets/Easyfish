@@ -57,7 +57,7 @@ $settings  = New-ScheduledTaskSettingsSet -ExecutionTimeLimit ([TimeSpan]::Zero)
     -DontStopIfGoingOnBatteries -MultipleInstances IgnoreNew
 
 Register-ScheduledTask -TaskName $TaskName -Action $action -Trigger $trigger -Principal $principal -Settings $settings `
-    -Description "Keeps EasyFish fishing history across logins on the WoW: Forever beta." -Force | Out-Null
+    -Description "Keeps EasyFish fishing history across logins on WoW: Forever." -Force | Out-Null
 Start-ScheduledTask -TaskName $TaskName
 Start-Sleep -Seconds 3
 $result = (Get-ScheduledTaskInfo -TaskName $TaskName).LastTaskResult

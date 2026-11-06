@@ -3,7 +3,7 @@
 <p>EasyFish handles everything around the bobber so you can focus on the bobber: casting, lures, poles, loot, and knowing where to fish. It learns your fishing spots as you go, finds pools and treasure chests, and tells you what your time on the water is actually worth.</p>
 <p>It never detects the bite or clicks the bobber for you. Every action is one click or key press from you, exactly as the game intends — no automation, nothing that puts your account at risk.</p>
 <blockquote>
-<p><strong>EasyFish is new, and it's being shaped by the people who use it.</strong> Forever is still in beta, so your reports on what works, what doesn't and what's different from Classic make the addon better for everyone. Drop a comment on the <strong>Comments</strong> tab — the <strong>Feedback</strong> section at the bottom of this page lists what helps most.</p>
+<p><strong>EasyFish is new, and it's being shaped by the people who use it.</strong> Forever is still young, so your reports on what works, what doesn't and what's different from Classic make the addon better for everyone. Drop a comment on the <strong>Comments</strong> tab — the <strong>Feedback</strong> section at the bottom of this page lists what helps most.</p>
 </blockquote>
 <hr />
 <h2>Casting made easy</h2>
@@ -29,6 +29,14 @@
 <li>Hover a pin for casts, fish per hour, junk rate, the fish you caught there and the time of day you usually fish it.</li>
 <li><strong>Pool tracking:</strong> wreckage, debris and fish schools are recognised and marked with their own crate pins, so you can find them again. <code>/fish pools</code> lists them.</li>
 <li>No bundled database to go stale — the map is built from <em>your</em> fishing on <em>your</em> server.</li>
+</ul>
+<h2>Recipes, rare fish and getting started</h2>
+<ul>
+<li><strong>Starter guide:</strong> <code>/fish start</code> shows your next step and a route from skill 1 to 300 for your faction, with waypoints. Your place on it follows your skill.</li>
+<li><strong>Recipes and vendors:</strong> the Recipes tab lists what your fish make, sorted into what's ready to cook, what you know and what you can learn. Click a recipe for a waypoint to its nearest vendor.</li>
+<li><strong>Recipe vendors on the minimap:</strong> gold food icons mark vendors in your zone who sell fish cooking recipes. Hover one to see what they sell.</li>
+<li><strong>Richer fish tooltips:</strong> any fish shows its auction or vendor price and what you can make with it, including how many from your bags.</li>
+<li><strong>Rare and trophy fish:</strong> see what's worth watching for in your zone, get an alert when you catch one, and hover the Top Fish rows to see each fish's rarity.</li>
 </ul>
 <h2>Chests, gold and materials</h2>
 <ul>
@@ -115,6 +123,22 @@
 <td>Swap between your weapon and fishing pole</td>
 </tr>
 <tr>
+<td><code>/fish start</code></td>
+<td>Starter guide; <code>/fish start go</code> sets a waypoint to your next stop</td>
+</tr>
+<tr>
+<td><code>/fish recipes</code></td>
+<td>What your fish make (<code>all</code>, or a fish name)</td>
+</tr>
+<tr>
+<td><code>/fish make</code></td>
+<td>What the fish in your bags can make now</td>
+</tr>
+<tr>
+<td><code>/fish rare</code></td>
+<td>Rare and trophy fish here (<code>all</code> for everywhere)</td>
+</tr>
+<tr>
 <td><code>/fish stats</code></td>
 <td>Catch log</td>
 </tr>
@@ -127,7 +151,8 @@
 <hr />
 <h2>Good to know</h2>
 <ul>
-<li><strong>Keeping your history on the Forever beta.</strong> The beta client currently saves addon data when you log out but doesn't load it back, so without help every login starts fresh. EasyFish includes an optional helper for Windows: run <code>EasyFish\tools\Install-EasyFishSync.ps1</code> once, then restart the game, and your history carries over automatically, with backups. It keeps your history in a small companion addon, <em>EasyFish History</em>, so updating EasyFish never touches it. It runs silently in the background, needs no admin rights, and can be removed with <code>-Uninstall</code>. When Blizzard fixes the bug, nothing needs to change.</li>
+<li><strong>Your history saves by itself</strong> on the live client. If every login ever starts with no history, an optional Windows helper in <code>EasyFish\tools</code> (<code>Install-EasyFishSync.ps1</code>) can keep it for you.</li>
+<li><strong>Recipe and fish data</strong> comes from Classic. Forever has reworked some recipes and added new ones, so food effects may differ. Corrections are very welcome.</li>
 <li><strong>Zone skill numbers</strong> come from Classic and are a guide — Forever is Classic+ and some values may differ. Zones without data say so rather than guess. Corrections are very welcome.</li>
 <li>EasyFish is written for the Forever client (interface 16001) using the modern addon API.</li>
 </ul>

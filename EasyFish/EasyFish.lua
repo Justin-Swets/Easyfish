@@ -235,9 +235,15 @@ NS.On("ZONE_CHANGED_NEW_AREA", function() end)
 ------------------------------------------------------------------------------------------------------------------------
 -- Small helpers (API compat shims: Forever uses the retail-style C_* namespaces)
 ------------------------------------------------------------------------------------------------------------------------
+-- The 3.0 look: deep-sea panels with a teal accent and gold version mark
+NS.THEME = {
+    accent = { 0.31, 0.82, 0.77 }, accentText = "|cff4fd1c5", goldText = "|cffffd100",
+    panel  = { 0.03, 0.10, 0.14, 0.90 },
+}
+
 local function Print(msg, ...)
     if select("#", ...) > 0 then msg = msg:format(...) end
-    DEFAULT_CHAT_FRAME:AddMessage("|cff33bbffEasyFish:|r " .. tostring(msg))
+    DEFAULT_CHAT_FRAME:AddMessage(NS.THEME.accentText .. "EasyFish:|r " .. tostring(msg))
 end
 NS.Print = Print
 
@@ -257,6 +263,26 @@ end
 function NS.GetItemInfoInstant(itemID)
     local f = (C_Item and C_Item.GetItemInfoInstant) or GetItemInfoInstant
     return safe(f, itemID)
+end
+
+-- An item's icon by ID, which the game knows even for items it hasn't loaded yet
+function NS.ItemIcon(itemID)
+    local f = (C_Item and C_Item.GetItemIconByID) or GetItemIcon
+    local icon = itemID and f and safe(f, itemID)
+    if type(icon) == "number" or type(icon) == "string" then return icon end
+    return "Interface\\Icons\\INV_Misc_Fish_02"
+end
+
+function NS.IconText(itemID, size)
+    return ("|T%s:%d:%d:0:0:64:64:5:59:5:59|t"):format(NS.ItemIcon(itemID), size or 14, size or 14)
+end
+
+-- "EasyFish 3.0", with the version read from the .toc
+function NS.TitleText()
+    local f = (C_AddOns and C_AddOns.GetAddOnMetadata) or GetAddOnMetadata
+    local version = f and safe(f, ADDON, "Version")
+    version = type(version) == "string" and version:match("%d+%.%d+") or "3.0"
+    return ("%sEasyFish|r %s%s|r"):format(NS.THEME.accentText, NS.THEME.goldText, version)
 end
 
 function NS.GetItemInfo(item)
@@ -663,11 +689,12 @@ local ui = CreateFrame("Frame", "EasyFishStatus", UIParent, "BackdropTemplate")
 ui:SetSize(308, 96)
 ui:SetPoint("CENTER", UIParent, "CENTER", 300, 150)
 ui:SetBackdrop({
-    bgFile = "Interface\\DialogFrame\\UI-DialogBox-Background-Dark",
+    bgFile = "Interface\\Buttons\\WHITE8X8",
     edgeFile = "Interface\\Tooltips\\UI-Tooltip-Border", edgeSize = 12,
     insets = { left = 3, right = 3, top = 3, bottom = 3 },
 })
-ui:SetBackdropColor(0, 0, 0, 0.75)
+ui:SetBackdropColor(unpack(NS.THEME.panel))
+ui:SetBackdropBorderColor(unpack(NS.THEME.accent))
 ui:SetMovable(true)
 ui:EnableMouse(true)
 ui:SetClampedToScreen(true)
@@ -681,9 +708,15 @@ end)
 ui:Hide()
 NS.ui = ui
 
+local titleIcon = ui:CreateTexture(nil, "ARTWORK")
+titleIcon:SetSize(14, 14)
+titleIcon:SetPoint("TOPLEFT", 8, -5)
+titleIcon:SetTexture("Interface\\Icons\\Trade_Fishing")
+titleIcon:SetTexCoord(0.08, 0.92, 0.08, 0.92)
+
 local title = ui:CreateFontString(nil, "OVERLAY", "GameFontNormal")
-title:SetPoint("TOPLEFT", 8, -6)
-title:SetText("|cff33bbffEasyFish|r")
+title:SetPoint("LEFT", titleIcon, "RIGHT", 4, 0)
+title:SetText(NS.TitleText())
 
 local statusLines = {}   -- { fs = FontString, fn = function }
 function NS.AddStatusLine(fn)
@@ -857,13 +890,15 @@ minimapButton:SetScript("OnLeave", function() GameTooltip:Hide() end)
 -- Settings panel (tabbed). Modules create their own tab with NS.NewTab(name).
 ------------------------------------------------------------------------------------------------------------------------
 local options = CreateFrame("Frame", "EasyFishOptions", UIParent, "BackdropTemplate")
-options:SetSize(500, 560)
+options:SetSize(500, 584)
 options:SetPoint("CENTER")
 options:SetBackdrop({
-    bgFile = "Interface\\DialogFrame\\UI-DialogBox-Background",
+    bgFile = "Interface\\Buttons\\WHITE8X8",
     edgeFile = "Interface\\DialogFrame\\UI-DialogBox-Border", edgeSize = 32,
     insets = { left = 11, right = 12, top = 12, bottom = 11 },
 })
+options:SetBackdropColor(NS.THEME.panel[1], NS.THEME.panel[2], NS.THEME.panel[3], 0.97)
+options:SetBackdropBorderColor(unpack(NS.THEME.accent))
 options:SetMovable(true)
 options:EnableMouse(true)
 options:SetClampedToScreen(true)
@@ -877,7 +912,7 @@ NS.options = options
 
 local optTitle = options:CreateFontString(nil, "OVERLAY", "GameFontNormalLarge")
 optTitle:SetPoint("TOP", 0, -18)
-optTitle:SetText("EasyFish Settings")
+optTitle:SetText(NS.TitleText())
 
 local closeBtn = CreateFrame("Button", nil, options, "UIPanelCloseButton")
 closeBtn:SetPoint("TOPRIGHT", -6, -6)
@@ -887,17 +922,20 @@ hint:SetPoint("BOTTOM", 0, 18)
 hint:SetText("/fish opens this panel. The addon never detects the bite or clicks the bobber for you.")
 
 local tabs = {}
+NS.tabs = tabs
 local function SelectTab(index)
     for i, tab in ipairs(tabs) do
         if i == index then
             tab.frame:Show()
             tab.button:Disable()
             tab.button:SetAlpha(1)
+            tab.marker:Show()
             for _, fn in ipairs(tab.refreshers) do safe(fn) end
         else
             tab.frame:Hide()
             tab.button:Enable()
             tab.button:SetAlpha(0.7)
+            tab.marker:Hide()
         end
     end
 end
@@ -913,7 +951,7 @@ end
 -- Returns a tab object with helpers: Check, Slider, Header, Button, Edit, Text; all stack downward automatically.
 function NS.NewTab(name)
     local frame = CreateFrame("Frame", nil, options)
-    frame:SetPoint("TOPLEFT", 16, -96)
+    frame:SetPoint("TOPLEFT", 16, -120)
     frame:SetPoint("BOTTOMRIGHT", -16, 36)
     frame:Hide()
 
@@ -924,14 +962,28 @@ function NS.NewTab(name)
     button:SetText(name)
     button:SetScript("OnClick", function() SelectTab(index) end)
 
-    local tab = { frame = frame, button = button, refreshers = {}, y = -4 }
+    -- The bar under the selected tab
+    local marker = button:CreateTexture(nil, "OVERLAY")
+    marker:SetColorTexture(unpack(NS.THEME.accent))
+    marker:SetHeight(2)
+    marker:SetPoint("BOTTOMLEFT", 4, 1)
+    marker:SetPoint("BOTTOMRIGHT", -4, 1)
+    marker:Hide()
+
+    local tab = { name = name, frame = frame, button = button, marker = marker, index = index, refreshers = {}, lists = {}, y = -4 }
     tabs[index] = tab
 
     function tab:Header(text)
         local fs = frame:CreateFontString(nil, "OVERLAY", "GameFontNormal")
         fs:SetPoint("TOPLEFT", 8, self.y - 4)
         fs:SetText(text)
-        self.y = self.y - 22
+        fs:SetTextColor(unpack(NS.THEME.accent))
+        local line = frame:CreateTexture(nil, "ARTWORK")
+        line:SetColorTexture(NS.THEME.accent[1], NS.THEME.accent[2], NS.THEME.accent[3], 0.3)
+        line:SetHeight(1)
+        line:SetPoint("TOPLEFT", 8, self.y - 19)
+        line:SetWidth(440)
+        self.y = self.y - 24
     end
 
     -- height reserves space for text that is filled in later (by a Refresh function)
@@ -1018,6 +1070,95 @@ function NS.NewTab(name)
         return box
     end
 
+    -- A scrolling list. list:Set({ item, ... }) where an item is either { header = "Section" } or
+    -- { icon=, text=, right=, sub=, sub2=, tip=, onClick= }. Rows are made once and reused.
+    function tab:List(height)
+        local WIDTH, ICON = 432, 32
+        local scroll = CreateFrame("ScrollFrame", nil, frame, "UIPanelScrollFrameTemplate")
+        scroll:SetPoint("TOPLEFT", 8, self.y - 2)
+        scroll:SetSize(WIDTH, height)
+        local child = CreateFrame("Frame", nil, scroll)
+        child:SetSize(WIDTH, 1)
+        scroll:SetScrollChild(child)
+        self.y = self.y - height - 8
+
+        local list = { rows = {} }
+        self.lists[#self.lists + 1] = list
+        local function Line(row, font, justify)
+            local fs = row:CreateFontString(nil, "OVERLAY", font)
+            fs:SetJustifyH(justify or "LEFT")
+            fs:SetWordWrap(false)
+            return fs
+        end
+        local function MakeRow()
+            local row = CreateFrame("Button", nil, child)
+            row:SetHighlightTexture("Interface\\QuestFrame\\UI-QuestTitleHighlight", "ADD")
+            row.icon = row:CreateTexture(nil, "ARTWORK")
+            row.icon:SetSize(ICON, ICON)
+            row.icon:SetPoint("TOPLEFT", 2, -3)
+            row.icon:SetTexCoord(0.08, 0.92, 0.08, 0.92)
+            row.top = Line(row, "GameFontHighlight")
+            row.right = Line(row, "GameFontHighlightSmall", "RIGHT")
+            row.right:SetPoint("TOPRIGHT", -4, -4)
+            row.right:SetWidth(110)
+            row.sub = Line(row, "GameFontHighlightSmall")
+            row.sub2 = Line(row, "GameFontDisableSmall")
+            row:SetScript("OnClick", function(rself) if rself.item.onClick then rself.item.onClick(rself.item) end end)
+            row:SetScript("OnEnter", function(rself)
+                if rself.item.tip then
+                    GameTooltip:SetOwner(rself, "ANCHOR_RIGHT")
+                    GameTooltip:SetText(rself.item.tip, 1, 1, 1, 1, true)
+                    GameTooltip:Show()
+                end
+            end)
+            row:SetScript("OnLeave", function() GameTooltip:Hide() end)
+            return row
+        end
+
+        local function Layout(row, item)
+            local left = item.icon and (ICON + 8) or 4
+            if item.icon then row.icon:SetTexture(item.icon) row.icon:Show() else row.icon:Hide() end
+            local function Place(fs, y, text, width)
+                fs:ClearAllPoints()
+                fs:SetPoint("TOPLEFT", left, y)
+                fs:SetWidth(width or (WIDTH - left - 4))
+                fs:SetText(text or "")
+                fs:Show()
+            end
+            if item.header then
+                Place(row.top, -6, NS.THEME.accentText .. item.header .. "|r")
+                row.right:Hide() row.sub:Hide() row.sub2:Hide()
+                row:EnableMouse(false)
+                return 22
+            end
+            Place(row.top, -3, item.text, WIDTH - left - (item.right and 116 or 4))
+            row.right:SetText(item.right or "")
+            row.right:Show()
+            Place(row.sub, -17, item.sub)
+            if item.sub2 then Place(row.sub2, -29, item.sub2) else row.sub2:Hide() end
+            row:EnableMouse((item.onClick or item.tip) and true or false)
+            return item.sub2 and 44 or 36
+        end
+
+        function list:Set(items)
+            local y = 0
+            for i, item in ipairs(items) do
+                local row = self.rows[i]
+                if not row then row = MakeRow() self.rows[i] = row end
+                row.item = item
+                local rowHeight = Layout(row, item)
+                row:SetSize(WIDTH, rowHeight)
+                row:ClearAllPoints()
+                row:SetPoint("TOPLEFT", 0, -y)
+                row:Show()
+                y = y + rowHeight
+            end
+            for i = #items + 1, #self.rows do self.rows[i]:Hide() end
+            child:SetHeight(math.max(1, y))
+        end
+        return list
+    end
+
     function tab:Refresh(fn) self.refreshers[#self.refreshers + 1] = fn end
 
     return tab
@@ -1025,6 +1166,11 @@ end
 
 local function ToggleOptions()
     if options:IsShown() then options:Hide() else options:Show() end
+end
+
+function NS.OpenTab(tab)
+    options:Show()
+    SelectTab(tab.index)
 end
 NS.ToggleOptions = ToggleOptions
 EasyFish_ToggleOptions = ToggleOptions -- for the key binding

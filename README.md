@@ -63,12 +63,21 @@ the client notices the new addon folder, and keep *EasyFish History* enabled in 
   *Only while a fishing pole is equipped*; untick to keep it up). Right-click the minimap button or `/fish show` to
   show/hide it by hand until the pole next goes on or off.
 
+### Recipes, rare fish and getting started
+- **Starter guide** — `/fish start` shows your next step and a route from skill 1 to 300 for your faction, with waypoints. Your place on it follows your skill.
+- **Recipes and vendors** — the Recipes tab lists what your fish make, sorted into what's ready to cook, what you know and what you can learn. Click a recipe for a waypoint to its nearest vendor.
+- **Recipe vendors on the minimap** — gold food icons mark vendors in your zone who sell fish cooking recipes. Hover one to see what they sell.
+- **Richer fish tooltips** — any fish shows its auction or vendor price and what you can make with it, including how many from your bags.
+- **Rare and trophy fish** — see what's worth watching for in your zone, get an alert when you catch one, and hover the Top Fish rows to see each fish's rarity.
+
 ## Commands
 ```
 /fish                open settings        /fish status      what was detected
 /fish where          zones for your skill /fish spots       best recorded spots
 /fish want [name]    wanted list          /fish keyboard    soft-target interact on/off
 /fish pole           swap weapon/pole     /fish stats       catch log
+/fish start [go]     starter guide        /fish rare [all]  rare and trophy fish
+/fish recipes [all|fish]  what fish make  /fish make        what your bags can make
 /fish toggle|sound|loot|show|minimap      /fish spell <name> override spell name
 /fish reset [all]    clear catch log      /fish clearspots  forget spot history
 ```
@@ -76,7 +85,8 @@ the client notices the new addon folder, and keep *EasyFish History* enabled in 
 ## Notes
 - Zone skill values are Classic Era numbers. Forever is Classic+ and may differ; unknown zones say "no data".
   Corrections welcome — they live in `Data.lua`.
-- Forever beta quirk: SavedVariables don't load back; see *Keeping history on the Forever beta* above.
+- Recipe and fish data is Classic; Forever has reworked some recipes. Corrections live in `RecipeData.lua`,
+  `RarityData.lua` and `StarterData.lua`. NPC positions come from Questie's Classic NPC database.
 - Gold/hour counts everything you fish up, including what's inside chests and trunks (items and coins) once you
   open them. The chest itself counts as nothing, since its value is what's inside.
 

@@ -251,5 +251,173 @@ click(); flushTimers()
 ''')
 check("nothing remembered: nothing equipped", run("equipped()"), "")
 
+print("\n=== data tables hang together")
+lua = new(); run = lua.eval; ex = lua.execute
+ex('''
+vendorNames = {}
+for _, v in ipairs(NS.RECIPE_VENDORS) do vendorNames[v.name] = true end
+missing, noCoords, badZone, badLevel = 0, 0, 0, 0
+for _, r in ipairs(NS.RECIPES) do
+    for _, n in ipairs(r.vendors or {}) do if not vendorNames[n] then missing = missing + 1 end end
+end
+function checkNPC(v) if not v.x or not v.y then noCoords = noCoords + 1 end if not NS.ZONES[v.zone] then badZone = badZone + 1 end end
+for _, v in ipairs(NS.RECIPE_VENDORS) do checkNPC(v) end
+for _, v in ipairs(NS.TRAINERS) do checkNPC(v) end
+for _, v in ipairs(NS.STARTER.poleVendors) do checkNPC(v) end
+for _, route in pairs(NS.STARTER.route) do
+    for _, step in ipairs(route) do
+        checkNPC(step)
+        if step.level > 60 then badLevel = badLevel + 1 end
+    end
+end
+badRare = 0
+for _, f in ipairs(NS.RARE_FISH) do
+    if f.zones ~= "any" then for _, z in ipairs(f.zones) do if not NS.ZONES[z] then badRare = badRare + 1 end end end
+end
+''')
+check("every recipe vendor is in the vendor table", run("missing"), 0)
+check("every NPC and route step has a position", run("noCoords"), 0)
+check("every zone name is a real zone", run("badZone"), 0)
+check("route levels are character levels", run("badLevel"), 0)
+check("rare fish zones are real zones", run("badRare"), 0)
+
+print("\n=== recipes")
+ex('''
+function count(fish, n) S.lures[fish] = n end
+function top(rows) return rows[1] and rows[1].recipe.name end
+GetProfessions = function() return nil, nil, nil, 5, 6 end
+GetProfessionInfo = function(i)
+    if i == 5 then return "Fishing", 0, S.skill, S.maxSkill, 1, 0, 356, S.modifier end
+    if i == 6 then return "Cooking", 0, S.cooking or 100, 150 end
+end
+''')
+check("nothing caught: nothing listed", run("#NS.RecipeRows(false)"), 0)
+check("every recipe when asked", run("#NS.RecipeRows(true) == #NS.RECIPES"), True)
+ex("count('Raw Rockscale Cod', 0) NS.db.totals['Raw Rockscale Cod'] = 3 count('Raw Brilliant Smallfish', 4)")
+check("fish in bags comes first", run("top(NS.RecipeRows(false))"), "Brilliant Smallfish")
+check("how many you can make", run("NS.RecipeRows(false)[1].now"), 4)
+check("alchemy hidden without the profession", run("#NS.RecipeRows(false, 'nope')"), 0)
+ex("NS.db.totals['Oily Blackmouth'] = 5")
+check("recipes you can't use stay out", run('''(function() for _, r in ipairs(NS.RecipeRows(false)) do if r.recipe.prof == "Alchemy" then return true end end return false end)()'''), False)
+
+ex('S.zone = "Stranglethorn Vale"; NS.Invalidate()')
+check("vendor for a recipe prefers this zone", run("NS.BestRecipeVendor(NS.RECIPES[1]) ~= nil"), True)
+check("Booty Bay vendor marked for the minimap", run("#NS.RecipeVendorsHere() >= 1"), True)
+ex("NS.db.vendorPins = false")
+ex('S.zone = "Elwynn Forest"; NS.Invalidate()')
+check("Alliance vendor hidden from Horde", run("#NS.RecipeVendorsHere()"), 0)
+ex('S.zone = "Thunder Bluff"; NS.Invalidate()')
+check("own faction's vendor shown", run("#NS.RecipeVendorsHere() >= 1"), True)
+
+ex('''
+tipLines = {}
+fakeTip = { AddLine = function(_, t) table.insert(tipLines, t) end,
+            AddDoubleLine = function(_, l, r) table.insert(tipLines, l .. "=" .. r) end, Show = function() end }
+NS.db.useAH = true
+NS.db.prices["Raw Rockscale Cod"] = { p = 678, t = time() }
+NS.db.fishTooltip = true
+NS.FishTooltip(fakeTip, "Raw Rockscale Cod")
+''')
+check("tooltip shows the auction price", run("tipLines[2]:find('Auction price', 1, true) ~= nil"), True)
+check("tooltip heads what you can make", run("tipLines[3]"), "You can make")
+check("tooltip names the recipe", run("tipLines[4]:find('Rockscale Cod', 1, true) ~= nil"), True)
+ex('''NS.db.knownRecipes = {} S.cooking = 200 count("Raw Rockscale Cod", 5) tipLines = {} NS.FishTooltip(fakeTip, "Raw Rockscale Cod")''')
+check("tooltip says how many you can make", run("tipLines[4]:find('x5', 1, true) ~= nil"), True)
+ex('''S.cooking = 10 tipLines = {} NS.FishTooltip(fakeTip, "Raw Rockscale Cod")''')
+check("tooltip says where to learn it", run("tipLines[5]:find('Cooking 175', 1, true) ~= nil"), True)
+ex('''S.cooking = 100 tipLines = {} NS.FishTooltip(fakeTip, "Lightning Eel")''')
+check("fish with no recipe says so", run("tipLines[3]"), "No known recipe uses this fish")
+ex('tipLines = {} NS.FishTooltip(fakeTip, "Copper Ore")')
+check("tooltip leaves other items alone", run("#tipLines"), 0)
+ex('tipLines = {} NS.db.fishTooltip = false NS.FishTooltip(fakeTip, "Raw Rockscale Cod") NS.db.fishTooltip = true')
+check("tooltip setting off", run("#tipLines"), 0)
+
+print("\n=== recipe list layout")
+ex('''
+function tabNamed(name) for _, t in ipairs(NS.tabs) do if t.name == name then return t end end end
+-- SelectTab hides errors from the player, so run each tab's drawing directly
+tabErrors = {}
+for _, t in ipairs(NS.tabs) do
+    for _, fn in ipairs(t.refreshers) do
+        local ok, err = pcall(fn)
+        if not ok then table.insert(tabErrors, t.name .. ": " .. tostring(err)) end
+    end
+end
+function rowOf(tabName, i) return tabNamed(tabName).lists[1].rows[i].item end
+function headers(tabName)
+    local out = {}
+    for _, row in ipairs(tabNamed(tabName).lists[1].rows) do if row.item.header then out[#out + 1] = row.item.header end end
+    return table.concat(out, ",")
+end
+NS.db.recipesAll = true
+NS.db.knownRecipes = {}
+S.cooking = 100
+count("Raw Brilliant Smallfish", 4)
+GetNumTradeSkills = function() return 2 end
+GetTradeSkillInfo = function(i) if i == 1 then return "Cooking", "header" end return "Brilliant Smallfish", "optimal" end
+fire("TRADE_SKILL_SHOW")
+flushTimers()
+''')
+check("every tab draws without error", run("table.concat(tabErrors, ' / ')"), "")
+ex('''
+for _, fn in ipairs(tabNamed("Recipes").refreshers) do fn() end
+''')
+check("recipes are grouped into sections", run("headers('Recipes')"), "Ready to make,You can learn,Higher skill needed,Other professions")
+check("first row is a section heading", run("rowOf('Recipes', 1).header"), "Ready to make")
+check("recipe rows have an icon, badge and vendor line", run("rowOf('Recipes', 2).right"), "|cff44ff44Make 4|r")
+check("recipe rows name a source", run("rowOf('Recipes', 2).sub2:find('Cooking 1', 1, true) ~= nil"), True)
+ex("NS.db.recipesAll = false")
+check("every fish has an icon id", run('''(function()
+    for _, r in ipairs(NS.RECIPES) do
+        if not r.itemID then return r.name end
+        for fish in pairs(r.reagents) do if not NS.FISH_IDS[fish] then return fish end end
+    end
+    return "ok"
+end)()'''), "ok")
+check("title shows the version", run("NS.TitleText():find('3.0', 1, true) ~= nil"), True)
+
+print("\n=== rare fish")
+ex('S.zone = "Stranglethorn Vale"; NS.Invalidate()')
+check("rare fish for this zone on the dashboard", run("NS.RareHereLine() ~= nil"), True)
+check("trophy catch alerts", run("NS.RareAlert('Old Ironjaw')"), "Trophy catch")
+check("uncommon fish don't interrupt", run("NS.RareAlert('Stonescale Eel')"), None)
+ex('S.zone = "Ironforge"; NS.Invalidate()')
+check("unconfirmed trophy stays off the dashboard", run("(NS.RareHereLine())"), None)
+check("...but is on the list", run("#NS.RareFishList('Ironforge')"), 1)
+ex('S.zone = "Stranglethorn Vale"; NS.db.showRare = false; NS.Invalidate()')
+check("rare line setting off", run("(NS.RareHereLine())"), None)
+
+print("\n=== hovering a top fish row")
+check("listed fish uses its catch rarity", run("(NS.FishRarity('Stonescale Eel'))"), "Uncommon catch")
+check("trophy fish", run("(NS.FishRarity('Old Ironjaw'))"), "Trophy fish")
+ex('''
+realGetItemInfo = NS.GetItemInfo
+NS.GetItemInfo = function(item)
+    if item == "Blue Thing" then return item, "link", 3 end
+    if item == "Raw Rockscale Cod" then return item, nil, 1 end
+    return realGetItemInfo(item)
+end
+''')
+check("other fish go by item quality", run("(NS.FishRarity('Blue Thing'))"), "Rare")
+check("unknown quality counts as common", run("(NS.FishRarity('Never Seen'))"), "Common")
+ex('''
+local h = NS.topFishHover(1)
+h.row = { item = "Raw Rockscale Cod", share = 37 }
+tipRows = {}
+rawset(GameTooltip, "AddDoubleLine", function(_, l, r) table.insert(tipRows, l .. "=" .. r) end)
+tintColor = nil
+rawset(h.tint, "SetColorTexture", function(_, r, g, b) tintColor = r .. "," .. g .. "," .. b end)
+h.scripts.OnEnter(h)
+''')
+check("hover names the rarity", run("tipRows[1]"), "Rarity=Common")
+check("hover shows the share", run("tipRows[2]"), "Share of your catches=37%")
+check("hover tints the row", run("tintColor"), "1,1,1")
+ex("NS.GetItemInfo = realGetItemInfo")
+
+print("\n=== starter guide")
+check("skill picks the step", run("(function() S.skill = 180 local s, i = NS.StarterStep() return s.zone end)()"), "Stranglethorn Vale")
+check("past the end: no step", run("(function() S.skill = 300 return NS.StarterStep() end)()"), None)
+ex("S.skill = 180")
+
 print(f"\n{sum(results)}/{len(results)} passed")
 sys.exit(0 if all(results) else 1)

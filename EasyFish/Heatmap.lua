@@ -284,7 +284,7 @@ local function AcquireMinimapPin()
         pin.Ring:SetBlendMode("ADD")
         pin:SetScript("OnEnter", function(self)
             GameTooltip:SetOwner(self, "ANCHOR_LEFT")
-            SpotTooltip(GameTooltip, self.spot)
+            if self.vendor then NS.VendorTooltip(GameTooltip, self.vendor) else SpotTooltip(GameTooltip, self.spot) end
             GameTooltip:Show()
         end)
         pin:SetScript("OnLeave", function() GameTooltip:Hide() end)
@@ -306,9 +306,30 @@ local function MinimapRadiusYards()
     return t[zoom + 1] or t[1]
 end
 
+-- Puts a pin at a map position (0-1). Far ones clamp to the edge so they still point the way, except on square minimaps.
+local mmHalf, mmScale, mmCos, mmSin, mmRotate, mmShape, mmX, mmY
 local mmMapID, mmSpots, mmW, mmH = nil, nil, nil, nil
+local function PlacePin(x, y)
+    local dx = (x - mmX) * mmW   -- yards east
+    local dy = (mmY - y) * mmH   -- yards north (map y grows downward)
+    if mmRotate then dx, dy = dx * mmCos - dy * mmSin, dx * mmSin + dy * mmCos end
+    local sx, sy = dx * mmScale, dy * mmScale
+    local dist = math.sqrt(sx * sx + sy * sy)
+    local limit = mmHalf - 6
+    if dist > limit then sx, sy = sx / dist * limit, sy / dist * limit end
+    if mmShape ~= "ROUND" and dist > limit then return nil end
+    local pin = AcquireMinimapPin()
+    pin.spot, pin.vendor = nil, nil
+    pin:ClearAllPoints()
+    pin:SetPoint("CENTER", Minimap, "CENTER", sx, sy)
+    pin:SetAlpha(dist > limit and 0.5 or 1)
+    return pin
+end
+
 local function UpdateMinimapPins()
-    if not NS.db or not NS.db.minimapPins then ReleaseMinimapPins() return end
+    local showSpots = NS.db and NS.db.minimapPins
+    local vendors = NS.db and NS.db.vendorPins and NS.RecipeVendorsHere and NS.RecipeVendorsHere()
+    if not showSpots and not vendors then ReleaseMinimapPins() return end
     local mapID, px, py = PlayerPos()
     if not mapID then ReleaseMinimapPins() return end
     if mapID ~= mmMapID then
@@ -317,32 +338,21 @@ local function UpdateMinimapPins()
         mmW, mmH = safe(C_Map.GetMapWorldSize, mapID)
     end
     ReleaseMinimapPins()
-    if not mmSpots or not mmW or mmW == 0 then return end
+    if not mmW or mmW == 0 then return end
 
-    local radiusYards = MinimapRadiusYards()
-    local half = Minimap:GetWidth() / 2
-    local pxPerYard = half / radiusYards
-    local rotate = NS.GetCVar("rotateMinimap") == "1"
-    local facing = rotate and (GetPlayerFacing() or 0) or 0
-    local cosF, sinF = math.cos(facing), math.sin(facing)
-    local shape = GetMinimapShape and GetMinimapShape() or "ROUND"
+    mmX, mmY = px, py
+    mmHalf = Minimap:GetWidth() / 2
+    mmScale = mmHalf / MinimapRadiusYards()
+    mmRotate = NS.GetCVar("rotateMinimap") == "1"
+    local facing = mmRotate and (GetPlayerFacing() or 0) or 0
+    mmCos, mmSin = math.cos(facing), math.sin(facing)
+    mmShape = GetMinimapShape and GetMinimapShape() or "ROUND"
 
-    for _, spot in pairs(mmSpots) do
+    for _, spot in pairs(showSpots and mmSpots or {}) do
         if spot.casts >= (NS.db.pinMinCasts or 3) then
-            local dx = (spot.x - px) * mmW   -- yards east
-            local dy = (py - spot.y) * mmH   -- yards north (map y grows downward)
-            if rotate then dx, dy = dx * cosF - dy * sinF, dx * sinF + dy * cosF end
-            local sx, sy = dx * pxPerYard, dy * pxPerYard
-            local dist = math.sqrt(sx * sx + sy * sy)
-            local limit = half - 6
-            if dist > limit then -- clamp to the edge so far spots still point the way
-                sx, sy = sx / dist * limit, sy / dist * limit
-            end
-            if shape == "ROUND" or dist <= limit then
-                local pin = AcquireMinimapPin()
+            local pin = PlacePin(spot.x, spot.y)
+            if pin then
                 pin.spot = spot
-                pin:ClearAllPoints()
-                pin:SetPoint("CENTER", Minimap, "CENTER", sx, sy)
                 if NS.IsPoolSpot and NS.IsPoolSpot(spot) then
                     pin.Icon:SetTexture("Interface\\Icons\\INV_Crate_04")
                     pin.Ring:SetVertexColor(0.3, 1, 0.4, 1)
@@ -351,8 +361,16 @@ local function UpdateMinimapPins()
                     local r, g, b = ScoreColor(Score(spot))
                     pin.Ring:SetVertexColor(r, g, b, 0.9)
                 end
-                pin:SetAlpha(dist > limit and 0.5 or 1)
             end
+        end
+    end
+
+    for _, vendor in ipairs(vendors or {}) do
+        local pin = PlacePin(vendor.x / 100, vendor.y / 100)
+        if pin then
+            pin.vendor = vendor
+            pin.Icon:SetTexture("Interface\\Icons\\INV_Misc_Food_15")
+            pin.Ring:SetVertexColor(1, 0.82, 0, 1)
         end
     end
 end

@@ -3,7 +3,7 @@
 -- Classic rules: Apprentice 1-75 and Journeyman 75-150 from any fishing trainer; Expert 150-225 from the book
 -- "Expert Fishing - The Bass and You" sold by Old Man Heming in Booty Bay; Artisan 225-300 from Nat Pagle's quest
 -- in Dustwallow Marsh. Forever may change this - the data is a plain table below.
--- Coordinates are approximate (zone %), enough to set a waypoint. Corrections welcome.
+-- Positions are from Questie's Classic NPC database. Corrections welcome.
 
 local ADDON, NS = ...
 local Print, safe = NS.Print, NS.safe
@@ -18,25 +18,25 @@ NS.RANKS = {
 -- faction: "Alliance", "Horde" or "Neutral"
 NS.TRAINERS = {
     -- Alliance
-    { name = "Arnold Leland",     zone = "Stormwind City",   x = 55, y = 68, faction = "Alliance", note = "canal by the Cathedral Square docks" },
-    { name = "Grimnur Stonebrand",zone = "Ironforge",        x = 48, y = 27, faction = "Alliance", note = "The Forlorn Cavern" },
-    { name = "Androl Oakhand",    zone = "Darnassus",        x = 60, y = 15, faction = "Alliance", note = "by the water, north side" },
-    { name = "Lee Brown",         zone = "Elwynn Forest",    x = 46, y = 62, faction = "Alliance", note = "Crystal Lake, east of Goldshire" },
-    { name = "Paxton Ganter",     zone = "Dun Morogh",       x = 53, y = 47, faction = "Alliance", note = "Iceflow Lake, north of Kharanos" },
-    { name = "Astaia",            zone = "Teldrassil",       x = 55, y = 94, faction = "Alliance", note = "Rut'theran Village" },
-    { name = "Warg Deepwater",    zone = "Westfall",         x = 26, y = 47, faction = "Alliance", note = "Longshore, north of Moonbrook" },
-    { name = "Harold Riggs",      zone = "Darkshore",        x = 38, y = 42, faction = "Alliance", note = "Auberdine docks" },
+    { name = "Arnold Leland", zone = "Stormwind City", x = 45.64, y = 58.43, faction = "Alliance", note = "by the canal, next to Catherine Leland" },
+    { name = "Grimnur Stonebrand", zone = "Ironforge", x = 48.07, y = 6.91, faction = "Alliance", note = "next to Tansy Puddlefizz" },
+    { name = "Androl Oakhand", zone = "Teldrassil", x = 55.88, y = 93.51, faction = "Alliance", note = "Rut'theran Village" },
+    { name = "Lee Brown", zone = "Elwynn Forest", x = 47.61, y = 62.32, faction = "Alliance", note = "Crystal Lake, east of Goldshire" },
+    { name = "Paxton Ganter", zone = "Dun Morogh", x = 35.48, y = 40.22, faction = "Alliance", note = "Iceflow Lake" },
+    { name = "Astaia", zone = "Darnassus", x = 47.89, y = 56.65, faction = "Alliance", note = "by the water" },
+    { name = "Warg Deepwater", zone = "Loch Modan", x = 40.55, y = 39.7, faction = "Alliance", note = "Thelsamar" },
+    { name = "Harold Riggs", zone = "Wetlands", x = 8.08, y = 58.59, faction = "Alliance", note = "Menethil Harbor" },
     -- Horde
-    { name = "Lumak",             zone = "Orgrimmar",        x = 66, y = 44, faction = "Horde", note = "Valley of Honor pond" },
-    { name = "Armand Cromwell",   zone = "Undercity",        x = 81, y = 31, faction = "Horde", note = "Magic Quarter canal" },
-    { name = "Kah Mistrunner",    zone = "Thunder Bluff",    x = 57, y = 47, faction = "Horde", note = "the pond on the middle rise" },
-    { name = "Lau'Tiki",          zone = "Durotar",          x = 58, y = 43, faction = "Horde", note = "coast east of Razor Hill" },
-    { name = "Uthan Stillwater",  zone = "Mulgore",          x = 48, y = 54, faction = "Horde", note = "Bloodhoof Village pond" },
-    { name = "Clyde Kellen",      zone = "Tirisfal Glades",  x = 66, y = 57, faction = "Horde", note = "Brightwater Lake, east of Brill" },
+    { name = "Lumak", zone = "Orgrimmar", x = 69.8, y = 29.21, faction = "Horde", note = "Valley of Honor" },
+    { name = "Armand Cromwell", zone = "Undercity", x = 80.7, y = 31.26, faction = "Horde", note = "the Canals" },
+    { name = "Kah Mistrunner", zone = "Thunder Bluff", x = 56.13, y = 46.38, faction = "Horde", note = "the pond on the middle rise" },
+    { name = "Lau'Tiki", zone = "Durotar", x = 53.25, y = 81.59, faction = "Horde", note = "south of Sen'jin Village" },
+    { name = "Uthan Stillwater", zone = "Mulgore", x = 44.51, y = 60.66, faction = "Horde", note = "Stonebull Lake" },
+    { name = "Clyde Kellen", zone = "Tirisfal Glades", x = 67.17, y = 50.99, faction = "Horde", note = "Brightwater Lake, east of Brill" },
     -- Neutral
-    { name = "Myizz Luckycatch",  zone = "Stranglethorn Vale", x = 27, y = 77, faction = "Neutral", note = "Booty Bay docks" },
-    { name = "Old Man Heming",    zone = "Stranglethorn Vale", x = 27, y = 76, faction = "Neutral", note = "Booty Bay - sells the Expert Fishing book", book = true },
-    { name = "Nat Pagle",         zone = "Dustwallow Marsh",   x = 59, y = 60, faction = "Neutral", note = "island south-west of Theramore - Artisan quest", artisan = true },
+    { name = "Myizz Luckycatch", zone = "Stranglethorn Vale", x = 27.46, y = 77.11, faction = "Neutral", note = "Booty Bay docks" },
+    { name = "Old Man Heming", zone = "Stranglethorn Vale", x = 27.42, y = 77.16, faction = "Neutral", note = "Booty Bay - sells the Expert Fishing book", book = true },
+    { name = "Nat Pagle", zone = "Dustwallow Marsh", x = 58.61, y = 60.06, faction = "Neutral", note = "island south-west of Theramore - Artisan quest", artisan = true },
 }
 
 ------------------------------------------------------------------------------------------------------------------------
@@ -46,6 +46,19 @@ local function MyFaction() return UnitFactionGroup("player") or "Neutral" end
 
 local function Usable(t)
     return t.faction == "Neutral" or t.faction == MyFaction()
+end
+NS.UsableNPC = Usable
+
+-- From a list of NPCs: one in this zone if there is one, else the first your faction can use
+function NS.NearestNPC(list)
+    local zone, first = GetRealZoneText(), nil
+    for _, t in ipairs(list) do
+        if Usable(t) then
+            if t.zone == zone then return t end
+            first = first or t
+        end
+    end
+    return first
 end
 
 -- Current rank info from the max skill: returns rank table and skill/max
@@ -76,6 +89,7 @@ local function MapIDFor(zone)
 end
 
 local function Waypoint(t)
+    if not t.x or not t.y then Print("%s: %s, %s.", t.name, t.zone, t.note or "no exact spot known") return end
     local mapID = MapIDFor(t.zone)
     if not mapID then Print("can't resolve a map for %s - head for %s, %s.", t.zone, t.zone, t.note) return end
     if TomTom and TomTom.AddWaypoint then
@@ -87,12 +101,14 @@ local function Waypoint(t)
         local point = safe(UiMapPoint.CreateFromCoordinates, mapID, t.x / 100, t.y / 100)
         if point and safe(C_Map.SetUserWaypoint, point) then
             if C_SuperTrack and C_SuperTrack.SetSuperTrackedUserWaypoint then safe(C_SuperTrack.SetSuperTrackedUserWaypoint, true) end
-            Print("map pin set: %s, %s (%d, %d). Open the map to see it.", t.name, t.zone, t.x, t.y)
+            Print("map pin set: %s, %s (%.0f, %.0f). Open the map to see it.", t.name, t.zone, t.x, t.y)
             return
         end
     end
-    Print("%s: %s, %s (%d, %d).", t.name, t.zone, t.note, t.x, t.y)
+    Print("%s: %s, %s (%.0f, %.0f).", t.name, t.zone, t.note, t.x, t.y)
 end
+
+NS.Waypoint = Waypoint
 
 -- The trainer you should go to now: rank-specific NPC if the next rank needs one, else nearest usable trainer
 local function Recommended()
@@ -133,7 +149,7 @@ NS.AddCommand("trainer", function(rest)
     end
     Print("Fishing trainers for %s:", MyFaction())
     for _, t in ipairs(NS.TRAINERS) do
-        if Usable(t) then Print("  %s - %s (%d, %d), %s", t.name, t.zone, t.x, t.y, t.note) end
+        if Usable(t) then Print("  %s - %s (%.0f, %.0f), %s", t.name, t.zone, t.x, t.y, t.note) end
     end
     Print("  /fish trainer go - set a waypoint to the one you need now")
 end, "[go] fishing trainers and rank requirements")

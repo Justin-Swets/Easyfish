@@ -23,7 +23,7 @@ local bar = CreateFrame("StatusBar", "EasyFishCastBar", NS.ui, "BackdropTemplate
 bar:SetSize(292, 10)
 bar:SetPoint("BOTTOMLEFT", NS.ui, "BOTTOMLEFT", 7, 30)
 bar:SetStatusBarTexture("Interface\\TargetingFrame\\UI-StatusBar")
-bar:SetStatusBarColor(0.2, 0.6, 1)
+bar:SetStatusBarColor(unpack(NS.THEME.accent))
 bar:SetBackdrop({ bgFile = "Interface\\ChatFrame\\ChatFrameBackground" })
 bar:SetBackdropColor(0, 0, 0, 0.6)
 bar:Hide()
@@ -39,7 +39,7 @@ bar:SetScript("OnUpdate", function(self)
     if left <= 0 then castEnd = nil self:Hide() return end
     self:SetValue(left)
     self.text:SetText(("%.0fs"):format(left))
-    if left < 4 then self:SetStatusBarColor(1, 0.4, 0.2) else self:SetStatusBarColor(0.2, 0.6, 1) end
+    if left < 4 then self:SetStatusBarColor(1, 0.4, 0.2) else self:SetStatusBarColor(unpack(NS.THEME.accent)) end
 end)
 
 NS.On("UNIT_SPELLCAST_CHANNEL_START", function(_, _, spellID)
@@ -123,6 +123,8 @@ NS.OnCatch(function(loot)
             Alert(("%s - %d/%d for %s"):format(item.name, math.min(q.need, q.have + item.quantity), q.need, q.quest))
         elseif NS.db.wanted[item.name] then
             Alert(("Wanted: %s x%d"):format(item.name, item.quantity))
+        elseif NS.RareAlert and NS.RareAlert(item.name) then
+            Alert(("%s: %s"):format(NS.RareAlert(item.name), item.link or item.name))
         elseif item.quality and item.quality >= 3 then
             Alert(("Rare catch: %s"):format(item.link or item.name))
         end

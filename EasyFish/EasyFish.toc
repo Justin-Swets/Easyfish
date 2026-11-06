@@ -1,6 +1,6 @@
 ## Interface: 16001
 ## Title: EasyFish
-## Notes: Fishing helper for WoW: Forever - easy cast, bite sound boost, smart lures, zone guide, personal spot heatmap, catch log, and more.
+## Notes: Fishing helper for WoW: Forever - easy cast, bite sound boost, smart lures, zone guide, recipes and vendors, rare fish, starter guide, personal spot heatmap, and more.
 ## Author: jswets
 ## Version: @project-version@
 ## SavedVariables: EasyFishDB
@@ -18,5 +18,11 @@ Extras.lua
 Prices.lua
 Materials.lua
 Trainers.lua
+RecipeData.lua
+Recipes.lua
+RarityData.lua
+Rarity.lua
+StarterData.lua
+Starter.lua
 Pools.lua
 Status.lua

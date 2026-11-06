@@ -35,7 +35,7 @@ end
 
 local function Rule()
     local t = ui:CreateTexture(nil, "ARTWORK")
-    t:SetColorTexture(1, 1, 1, 0.12)
+    t:SetColorTexture(NS.THEME.accent[1], NS.THEME.accent[2], NS.THEME.accent[3], 0.3)
     t:SetHeight(1)
     return t
 end
@@ -58,9 +58,59 @@ for i = 1, 3 do
     fishRows[i] = { icon = icon, name = FS("GameFontHighlightSmall", "LEFT"), count = FS("GameFontHighlightSmall", "RIGHT"),
                     value = FS("GameFontHighlightSmall", "RIGHT") }
 end
+-- An invisible strip over each row: hovering tints the row in the fish's rarity colour and shows its tooltip.
+-- It sits on top of the window, so dragging is passed through to keep the window movable from these rows.
+local function ShowFishTip(self)
+    local row = self.row
+    if not row then return end
+    local label, r, g, b = NS.FishRarity(row.item)
+    self.tint:SetColorTexture(r, g, b, 0.18)
+    self.edge:SetColorTexture(r, g, b, 1)
+    self.tint:Show()
+    self.edge:Show()
+    local _, link = NS.GetItemInfo(row.item)
+    GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
+    if link then GameTooltip:SetHyperlink(link) else GameTooltip:SetText(row.item, r, g, b) end
+    GameTooltip:AddLine(" ")
+    GameTooltip:AddDoubleLine("Rarity", label, 0.31, 0.82, 0.77, r, g, b)
+    GameTooltip:AddDoubleLine("Share of your catches", ("%d%%"):format(row.share), 0.31, 0.82, 0.77, 1, 1, 1)
+    GameTooltip:Show()
+end
+
+local function HideFishTip(self)
+    self.tint:Hide()
+    self.edge:Hide()
+    GameTooltip:Hide()
+end
+
+for i = 1, 3 do
+    local hover = CreateFrame("Frame", nil, ui)
+    hover:SetSize(W, 13)
+    hover:EnableMouse(true)
+    hover:RegisterForDrag("LeftButton")
+    hover:SetScript("OnDragStart", function() ui:GetScript("OnDragStart")(ui) end)
+    hover:SetScript("OnDragStop", function() ui:GetScript("OnDragStop")(ui) end)
+    hover:SetScript("OnEnter", ShowFishTip)
+    hover:SetScript("OnLeave", HideFishTip)
+    hover.tint = hover:CreateTexture(nil, "BACKGROUND")
+    hover.tint:SetAllPoints()
+    hover.tint:Hide()
+    hover.edge = hover:CreateTexture(nil, "ARTWORK")
+    hover.edge:SetWidth(2)
+    hover.edge:SetPoint("TOPLEFT", -3, 0)
+    hover.edge:SetPoint("BOTTOMLEFT", -3, 0)
+    hover.edge:Hide()
+    hover:Hide()
+    fishRows[i].hover = hover
+end
+NS.topFishHover = function(i) return fishRows[i].hover end   -- exposed for tests/test_core.py
+
 local matsLine  = FS("GameFontHighlightSmall")
 matsLine:SetWordWrap(true)
 matsLine:SetWidth(W)
+local rareLine  = FS("GameFontHighlightSmall")
+rareLine:SetWordWrap(true)
+rareLine:SetWidth(W)
 local expected  = FS("GameFontHighlightSmall")
 expected:SetWordWrap(true)
 expected:SetWidth(W)
@@ -134,6 +184,8 @@ local function TopFishRows()
         local _, _, _, _, tex = NS.GetItemInfoInstant(it.name)
         if not NS.GetItemInfo(it.name) then complete = false end
         rows[i] = {
+            item  = it.name,
+            share = sum > 0 and it.n / sum * 100 or 0,
             name  = Short(it.name) .. (req and (" |cff777777" .. req .. "|r") or ""),
             count = ("x%d |cffaaaaaa%d%%|r"):format(it.n, sum > 0 and it.n / sum * 100 or 0),
             value = v > 0 and (NS.FormatMoney(v) .. (src == "ah" and " |cff777777ah|r" or " |cff777777v|r")) or "",
@@ -251,9 +303,11 @@ function NS.StatusHeader(y)
             Place(row.name, y, tex and 15 or 0, W * 0.55 - (tex and 15 or 0))
             Place(row.count, y, W * 0.55, W * 0.17)
             Place(row.value, y, W * 0.72, W * 0.28)
+            row.hover.row = it
+            Place(row.hover, y, 0)
             y = y - 13
         else
-            row.name:Hide() row.count:Hide() row.value:Hide() row.icon:Hide()
+            row.name:Hide() row.count:Hide() row.value:Hide() row.icon:Hide() row.hover:Hide()
             if i == 1 then
                 row.name:SetText("|cff888888nothing caught here yet|r")
                 Place(row.name, y, 0, W)
@@ -267,6 +321,12 @@ function NS.StatusHeader(y)
         Place(matsLine, y, 0, W)
         y = y - math.max(12, matsLine:GetStringHeight()) - 1
     else matsLine:Hide() end
+    local rare = NS.RareHereLine and NS.RareHereLine()
+    if rare then
+        rareLine:SetText(rare)
+        Place(rareLine, y, 0, W)
+        y = y - math.max(12, rareLine:GetStringHeight()) - 1
+    else rareLine:Hide() end
     if db.showExpected then
         local text = ExpectedLine()
         if text then

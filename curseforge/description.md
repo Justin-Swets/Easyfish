@@ -6,7 +6,7 @@ EasyFish handles everything around the bobber so you can focus on the bobber: ca
 
 It never detects the bite or clicks the bobber for you. Every action is one click or key press from you, exactly as the game intends — no automation, nothing that puts your account at risk.
 
-> **EasyFish is new, and it's being shaped by the people who use it.** Forever is still in beta, so your reports on what works, what doesn't and what's different from Classic make the addon better for everyone. Drop a comment on the **Comments** tab — the **Feedback** section at the bottom of this page lists what helps most.
+> **EasyFish is new, and it's being shaped by the people who use it.** Forever is still young, so your reports on what works, what doesn't and what's different from Classic make the addon better for everyone. Drop a comment on the **Comments** tab — the **Feedback** section at the bottom of this page lists what helps most.
 
 ---
 
@@ -33,6 +33,14 @@ It never detects the bite or clicks the bobber for you. Every action is one clic
 - Hover a pin for casts, fish per hour, junk rate, the fish you caught there and the time of day you usually fish it.
 - **Pool tracking:** wreckage, debris and fish schools are recognised and marked with their own crate pins, so you can find them again. `/fish pools` lists them.
 - No bundled database to go stale — the map is built from *your* fishing on *your* server.
+
+## Recipes, rare fish and getting started
+
+- **Starter guide:** `/fish start` shows your next step and a route from skill 1 to 300 for your faction, with waypoints. Your place on it follows your skill.
+- **Recipes and vendors:** the Recipes tab lists what your fish make, sorted into what's ready to cook, what you know and what you can learn. Click a recipe for a waypoint to its nearest vendor.
+- **Recipe vendors on the minimap:** gold food icons mark vendors in your zone who sell fish cooking recipes. Hover one to see what they sell.
+- **Richer fish tooltips:** any fish shows its auction or vendor price and what you can make with it, including how many from your bags.
+- **Rare and trophy fish:** see what's worth watching for in your zone, get an alert when you catch one, and hover the Top Fish rows to see each fish's rarity.
 
 ## Chests, gold and materials
 
@@ -77,6 +85,10 @@ Everything is configurable from the **minimap button** or **`/fish`**, also unde
 | `/fish price [item]` | Cached auction prices, or the price used for one item |
 | `/fish scan` | Scan the auction house (while it's open) |
 | `/fish pole` | Swap between your weapon and fishing pole |
+| `/fish start` | Starter guide; `/fish start go` sets a waypoint to your next stop |
+| `/fish recipes` | What your fish make (`all`, or a fish name) |
+| `/fish make` | What the fish in your bags can make now |
+| `/fish rare` | Rare and trophy fish here (`all` for everywhere) |
 | `/fish stats` | Catch log |
 | `/fish keyboard` | Toggle keyboard fishing |
 
@@ -84,7 +96,8 @@ Everything is configurable from the **minimap button** or **`/fish`**, also unde
 
 ## Good to know
 
-- **Keeping your history on the Forever beta.** The beta client currently saves addon data when you log out but doesn't load it back, so without help every login starts fresh. EasyFish includes an optional helper for Windows: run `EasyFish\tools\Install-EasyFishSync.ps1` once, then restart the game, and your history carries over automatically, with backups. It keeps your history in a small companion addon, *EasyFish History*, so updating EasyFish never touches it. It runs silently in the background, needs no admin rights, and can be removed with `-Uninstall`. When Blizzard fixes the bug, nothing needs to change.
+- **Your history saves by itself** on the live client. If every login ever starts with no history, an optional Windows helper in `EasyFish\tools` (`Install-EasyFishSync.ps1`) can keep it for you.
+- **Recipe and fish data** comes from Classic. Forever has reworked some recipes and added new ones, so food effects may differ. Corrections are very welcome.
 - **Zone skill numbers** come from Classic and are a guide — Forever is Classic+ and some values may differ. Zones without data say so rather than guess. Corrections are very welcome.
 - EasyFish is written for the Forever client (interface 16001) using the modern addon API.
 

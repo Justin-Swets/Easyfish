@@ -59,7 +59,7 @@ end
 -- Items worth caching: fish we know about, anything ever fished up, chests.
 local function Interesting(name)
     if NS.FISH_SKILL[name] or NS.TIMED_FISH[name] or NS.db.totals[name] then return true end
-    if NS.IsTreasure(name) then return true end
+    if NS.IsTreasure(name) or (NS.RECIPE_PRODUCTS and NS.RECIPE_PRODUCTS[name]) then return true end
     for _, items in pairs(NS.db.chestLoot or {}) do   -- anything that has ever come out of a fished-up chest
         if items[name] then return true end
     end

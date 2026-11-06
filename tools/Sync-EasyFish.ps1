@@ -17,13 +17,13 @@
     Run it before starting the game, or run Install-EasyFishSync.ps1 once to keep it running in the background.
 
 .PARAMETER WowRoot
-    The Forever client folder. Default: C:\Program Files (x86)\World of Warcraft\_classic_beta_
+    The Forever client folder. Default: C:\Program Files (x86)\World of Warcraft\_forever_
 
 .PARAMETER Watch
     Keep running and sync each time the game writes the file.
 #>
 param(
-    [string]$WowRoot = "C:\Program Files (x86)\World of Warcraft\_classic_beta_",
+    [string]$WowRoot = "C:\Program Files (x86)\World of Warcraft\_forever_",
     [switch]$Watch
 )
 

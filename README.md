@@ -5,14 +5,14 @@ bobber for you (the API doesn't expose it, and doing it externally is a ban). Ev
 key; everything else is information.
 
 ## Install
-1. Find your Forever install. During the beta it is `World of Warcraft\_classic_beta_\`.
+1. Find your Forever install: `World of Warcraft\_forever_\`.
 2. Copy the `EasyFish` folder into `<that folder>\Interface\AddOns\` so you have `...\AddOns\EasyFish\EasyFish.toc`.
 3. `/reload` or restart, enable it on the AddOns screen. `/fish` opens settings; there is also a minimap button.
-4. **Keep your history (Forever beta):** run `tools\Install-EasyFishSync.ps1` once. See below.
 
-## Keeping history on the Forever beta
-The Forever beta client writes SavedVariables when you log out but never reads them back, so without help every
-login starts with no history. `tools\Sync-EasyFish.ps1` works around it: it writes your saved data as a small
+## If your history stops loading
+The live client keeps your history by itself, so most players need nothing here. The Forever beta client wrote
+SavedVariables when you logged out but never read them back. If every login starts with no history,
+`tools\Sync-EasyFish.ps1` works around it: it writes your saved data as a small
 companion addon, `Interface\AddOns\EasyFish_History`, which EasyFish loads first. It has its own folder, so updating
 EasyFish (by hand or through the CurseForge app) never touches it. **Restart the game once** after the first sync so
 the client notices the new addon folder, and keep *EasyFish History* enabled in the AddOns list.
@@ -57,7 +57,8 @@ the client notices the new addon folder, and keep *EasyFish History* enabled in 
 - **Danger swap** — the instant you target something hostile, your real weapon goes back on (gear can't change once
   combat starts, so this is the last legal moment).
 - **Gold/hour** — vendor value of the session; uses Auctionator / TSM prices if you have them.
-- Bite sound boost, auto-loot, catch log, pole/lure/log buttons on the status window.
+- Bite sound boost, auto-loot, catch log, lure/log buttons on the status window, plus a Pole button that turns into
+  a Weapons button while the pole is on, however you equipped it.
 - The **status window** appears when you equip a fishing pole and hides when you take it off (Window tab →
   *Only while a fishing pole is equipped*; untick to keep it up). Right-click the minimap button or `/fish show` to
   show/hide it by hand until the pole next goes on or off.

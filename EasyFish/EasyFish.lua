@@ -409,8 +409,7 @@ castButton:SetScript("PreClick", function(_, button)
         local pole = NS.FindBestPole()
         if pole then
             -- Equip now; the cast this click will fail, the next one will work.
-            db.savedMainHand = GetInventoryItemID("player", 16)
-            db.savedOffHand  = GetInventoryItemID("player", 17)
+            NS.RememberWeapons()
             NS.EquipItem(pole)
             Print("Equipped your fishing pole - cast again.")
         else
@@ -555,18 +554,27 @@ NS.RestoreSound = RestoreSound
 ------------------------------------------------------------------------------------------------------------------------
 -- Pole swap
 ------------------------------------------------------------------------------------------------------------------------
+-- Whatever is in your hands when it isn't the pole is what the Weapons button puts back, so it works however the pole
+-- went on (dragged from your bags, a macro, our own swap). Empty hands keep the last weapons remembered.
+function NS.RememberWeapons()
+    if not db or NS.PoleEquipped() then return end
+    local main, off = GetInventoryItemID("player", 16), GetInventoryItemID("player", 17)
+    if main or off then db.savedMainHand, db.savedOffHand = main, off end
+end
+
+-- One swap reports each hand separately, and the off-hand can come off before the pole shows up in the main hand.
+-- Looking a moment later sees the finished swap instead of a weapon with its off-hand already gone.
+NS.On("PLAYER_EQUIPMENT_CHANGED", function() C_Timer.After(0.1, NS.RememberWeapons) end)
+
 function NS.RestoreWeapon(quiet)
     if InCombatLockdown() then return false end
-    if not db.savedMainHand then
+    local main, off = db.savedMainHand, db.savedOffHand
+    if not main and not off then
         if not quiet then Print("No saved weapon to restore - swap it back by hand.") end
         return false
     end
-    NS.EquipItem(db.savedMainHand)
-    if db.savedOffHand then
-        local off = db.savedOffHand
-        C_Timer.After(0.5, function() NS.EquipItem(off) end)
-    end
-    db.savedMainHand, db.savedOffHand = nil, nil
+    if main then NS.EquipItem(main) end
+    if off then C_Timer.After(0.5, function() NS.EquipItem(off) end) end
     if not quiet then Print("Weapon restored.") end
     return true
 end
@@ -578,10 +586,9 @@ local function TogglePole()
     else
         local pole = NS.FindBestPole()
         if not pole then Print("No fishing pole in your bags.") return end
-        db.savedMainHand = GetInventoryItemID("player", 16)
-        db.savedOffHand  = GetInventoryItemID("player", 17)
+        NS.RememberWeapons()
         NS.EquipItem(pole)
-        Print("Fishing pole equipped. Use the Pole button again to restore your weapon.")
+        Print("Fishing pole equipped. Use the Weapons button to swap back.")
     end
 end
 NS.TogglePole = TogglePole
@@ -692,7 +699,7 @@ lureButton:SetParent(ui)
 lureButton:SetPoint("BOTTOMLEFT", 6, 6)
 
 local poleButton = CreateFrame("Button", "EasyFishPoleButton", ui, "UIPanelButtonTemplate")
-poleButton:SetSize(56, 20)
+poleButton:SetSize(64, 20)
 poleButton:SetPoint("BOTTOMLEFT", lureButton, "BOTTOMRIGHT", 4, 0)
 poleButton:SetText("Pole")
 poleButton:SetScript("OnClick", TogglePole)
@@ -742,11 +749,12 @@ local function ApplyVisibility()
 end
 NS.ApplyVisibility = ApplyVisibility
 
--- Equipping or taking off the pole ends any manual override
+-- Equipping or taking off the pole ends any manual override, and flips the swap button to the other direction
 local function PoleChanged()
     local pole = NS.PoleEquipped()
     if pole ~= lastPole then
         lastPole, manualShow = pole, nil
+        poleButton:SetText(pole and "Weapons" or "Pole")
         ApplyVisibility()
     end
 end
@@ -1120,6 +1128,7 @@ EF:SetScript("OnEvent", function(self, event, ...)
         ConfigureCastButton()
         ConfigureLureButton()
         if session.started == 0 then session.started = GetTime() end
+        NS.RememberWeapons()
         lastPole = nil   -- re-check the pole and show or hide the window to match
         PoleChanged()
 

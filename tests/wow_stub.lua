@@ -79,7 +79,10 @@ C_Timer = { After = function(_, fn) table.insert(S.queue, fn) end,
             NewTimer = function() return { Cancel = function() end } end }
 SetOverrideBindingClick = function(_, _, _, _, mouse) S.armedWith = mouse end
 ClearOverrideBindings = function() S.armedWith = nil end
-GetInventoryItemID = function(_, slot) if slot == 16 and S.pole then return 101 end return nil end
+GetInventoryItemID = function(_, slot)
+    if slot == 16 then return S.pole and 101 or S.mainHand end
+    if slot == 17 then return S.offHand end
+end
 GetWeaponEnchantInfo = function() return false end
 GetProfessions = function() return nil, nil, nil, 5, nil end
 GetProfessionInfo = function(i) if i == 5 then return "Fishing", 0, S.skill, S.maxSkill, 1, 0, 356, S.modifier end end

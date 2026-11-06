@@ -11,10 +11,10 @@
     Remove it again with:  .\Install-EasyFishSync.ps1 -Uninstall
 
 .PARAMETER WowRoot
-    The Forever client folder. Default: C:\Program Files (x86)\World of Warcraft\_classic_beta_
+    The Forever client folder. Default: C:\Program Files (x86)\World of Warcraft\_forever_
 #>
 param(
-    [string]$WowRoot = "C:\Program Files (x86)\World of Warcraft\_classic_beta_",
+    [string]$WowRoot = "C:\Program Files (x86)\World of Warcraft\_forever_",
     [switch]$Uninstall
 )
 

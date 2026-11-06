@@ -197,5 +197,59 @@ check("in combat: window left alone", run("shown()"), False)
 ex('S.combat = false fire("PLAYER_REGEN_ENABLED")')
 check("combat over: window shown", run("shown()"), True)
 
+print("\n=== swap button follows the fishing pole")
+lua = new(); run = lua.eval; ex = lua.execute
+ex('''
+local b = frames.EasyFishPoleButton
+rawset(b, "SetText", function(self, text) rawset(self, "label", text) end)
+function label() return frames.EasyFishPoleButton.label end
+function click() frames.EasyFishPoleButton.scripts.OnClick(frames.EasyFishPoleButton) end
+function equip(pole) S.pole = pole fire("PLAYER_EQUIPMENT_CHANGED", 16, false) flushTimers() end
+function equipped() return table.concat(S.equipped, ",") end
+S.pole, S.mainHand, S.offHand = false, 501, 502
+fire("PLAYER_ENTERING_WORLD")
+''')
+check("no pole: button offers the pole", run("label()"), "Pole")
+ex("equip(true)")
+check("pole dragged on by hand: button offers weapons", run("label()"), "Weapons")
+ex("S.mainHand, S.offHand = nil, nil; click(); flushTimers()")
+check("pole dragged on by hand: click restores both hands", run("equipped()"), "501,502")
+ex("S.equipped = {}; S.mainHand, S.offHand = 501, 502; equip(false)")
+check("weapons back on: button offers the pole", run("label()"), "Pole")
+
+ex('''
+-- a two-handed pole takes the off-hand off first; that report arrives before the pole is in the main hand
+S.equipped = {}
+S.offHand = nil
+fire("PLAYER_EQUIPMENT_CHANGED", 17, true)
+S.pole, S.mainHand = true, nil
+fire("PLAYER_EQUIPMENT_CHANGED", 16, false)
+flushTimers()
+click(); flushTimers()
+''')
+check("off-hand reported first: still remembered", run("equipped()"), "501,502")
+
+ex("S.equipped = {}; S.combat = true; click(); flushTimers(); S.combat = false")
+check("in combat: no gear touched", run("equipped()"), "")
+
+ex('''
+S.pole, S.mainHand, S.offHand = false, nil, nil
+fire("PLAYER_EQUIPMENT_CHANGED", 16, true)
+flushTimers()
+S.pole = true
+fire("PLAYER_EQUIPMENT_CHANGED", 16, false)
+flushTimers()
+S.equipped = {}
+click(); flushTimers()
+''')
+check("empty hands before the pole: last weapons kept", run("equipped()"), "501,502")
+
+ex('''
+NS.db.savedMainHand, NS.db.savedOffHand = nil, nil
+S.equipped = {}
+click(); flushTimers()
+''')
+check("nothing remembered: nothing equipped", run("equipped()"), "")
+
 print(f"\n{sum(results)}/{len(results)} passed")
 sys.exit(0 if all(results) else 1)

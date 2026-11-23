@@ -51,13 +51,48 @@ function NS.CurrentLureBonus()
     return 0
 end
 
+-- Any item whose use says it raises Fishing counts as a lure, so lures we don't list (the camp Fishing Rack's, or
+-- anything Forever adds) still work. The bonus is read from the text, e.g. "increases Fishing by 75 for 10 min".
+local knownLure, lureCache = {}, {}
+for _, lure in ipairs(NS.LURES) do knownLure[lure.id] = lure.bonus end
+
+local function LureBonusOf(itemID)
+    if knownLure[itemID] then return knownLure[itemID] end
+    if lureCache[itemID] ~= nil then return lureCache[itemID] or nil end
+    local getSpell = (C_Item and C_Item.GetItemSpell) or GetItemSpell
+    local _, spellID = safe(getSpell, itemID)
+    if not spellID then lureCache[itemID] = false return nil end
+    local getText = (C_Spell and C_Spell.GetSpellDescription) or GetSpellDescription
+    local text = safe(getText, spellID)
+    if type(text) ~= "string" or text == "" then
+        if C_Spell and C_Spell.RequestLoadSpellData then safe(C_Spell.RequestLoadSpellData, spellID) end
+        return nil   -- not loaded yet; asked for next time
+    end
+    text = text:lower()
+    local bonus = text:find("fishing", 1, true) and (text:match("fishing[^%d%.]-by (%d+)") or text:match("%+(%d+) fishing"))
+    lureCache[itemID] = tonumber(bonus) or false
+    return lureCache[itemID] or nil
+end
+NS.LureBonusOf = LureBonusOf
+
+-- Lures in your bags, strongest first. Rebuilt only when something changed (bags changing is an event).
+local BagLures = NS.Memo(function()
+    local list, seen = {}, {}
+    NS.ForEachBagItem(function(_, _, itemID)
+        if seen[itemID] then return end
+        seen[itemID] = true
+        local bonus = LureBonusOf(itemID)
+        if bonus then list[#list + 1] = { id = itemID, bonus = bonus } end
+    end)
+    table.sort(list, function(a, b) if a.bonus ~= b.bonus then return a.bonus > b.bonus end return a.id < b.id end)
+    return list
+end)
+NS.On("BAG_UPDATE_DELAYED", function() end)   -- registering it is enough: every event refreshes the cache
+
 -- Which lure to use now. Smart mode: weakest lure in bags whose bonus covers the need; otherwise the strongest.
 function NS.ChooseLure()
     local db = NS.db
-    local available = {}
-    for _, lure in ipairs(NS.LURES) do
-        if NS.GetItemCount(lure.id) > 0 then available[#available + 1] = lure end
-    end
+    local available = BagLures()
     if #available == 0 then return nil end
     if not db.smartLure then return available[1].id, available[1].bonus end
     local need = NeededBonus(NS.ZoneReport())

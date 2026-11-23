@@ -12,7 +12,7 @@ It never detects the bite or clicks the bobber for you. Every action is one clic
 
 - **Starter guide:** `/fish start` shows your next step and a route from skill 1 to 300 for your faction, with waypoints.
 - **Recipes and vendors:** see what your fish make, what's ready to cook and what you can learn. Click a recipe for a waypoint to its nearest vendor.
-- **Recipe vendors on the minimap:** gold food icons mark vendors in your zone who sell fish cooking recipes.
+- **Recipe vendors on the minimap:** purple minimap dots mark vendors in your zone who sell fish cooking recipes.
 - **Richer fish tooltips:** any fish shows its auction or vendor price and what you can make with it.
 - **Rare and trophy fish:** see what's worth watching for in your zone, get an alert when you catch one, and hover Top Fish rows to see each fish's rarity.
 - **One-click weapon swap:** the Pole button becomes a Weapons button while you fish, however you equipped the pole.

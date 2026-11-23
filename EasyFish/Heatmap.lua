@@ -266,22 +266,25 @@ end
 local OUTDOOR_RADIUS = { 233 + 1/3, 200, 166 + 2/3, 133 + 1/3, 100, 66 + 2/3 }
 local INDOOR_RADIUS  = { 300, 240, 180, 120, 80, 50 }
 
+local MINIMAP_DOT = { 0.66, 0.3, 1 }   -- purple
 local mmPins, mmPool = {}, {}
 local function AcquireMinimapPin()
     local pin = table.remove(mmPool)
     if not pin then
         pin = CreateFrame("Button", nil, Minimap)
-        pin:SetSize(12, 12)
+        pin:SetSize(6, 6)
         pin:SetFrameLevel(Minimap:GetFrameLevel() + 5)
-        pin.Icon = pin:CreateTexture(nil, "ARTWORK")
-        pin.Icon:SetAllPoints()
-        pin.Icon:SetTexture("Interface\\Icons\\INV_Misc_Fish_02")
-        pin.Icon:SetTexCoord(0.1, 0.9, 0.1, 0.9)
-        pin.Ring = pin:CreateTexture(nil, "BACKGROUND")
-        pin.Ring:SetSize(18, 18)
-        pin.Ring:SetPoint("CENTER")
-        pin.Ring:SetTexture("Interface\\Minimap\\UI-Minimap-Ping-Center")
-        pin.Ring:SetBlendMode("ADD")
+        -- A small purple dot, like EasyGather's red ones: a coloured square clipped round by the portrait mask
+        pin.Dot = pin:CreateTexture(nil, "OVERLAY", nil, 7)
+        pin.Dot:SetSize(4, 4)
+        pin.Dot:SetPoint("CENTER")
+        pin.Dot:SetColorTexture(unpack(MINIMAP_DOT))
+        if pin.CreateMaskTexture then
+            local mask = pin:CreateMaskTexture()
+            mask:SetTexture("Interface\\CharacterFrame\\TempPortraitAlphaMask", "CLAMPTOBLACKADDITIVE", "CLAMPTOBLACKADDITIVE")
+            mask:SetAllPoints(pin.Dot)
+            pin.Dot:AddMaskTexture(mask)
+        end
         pin:SetScript("OnEnter", function(self)
             GameTooltip:SetOwner(self, "ANCHOR_LEFT")
             if self.vendor then NS.VendorTooltip(GameTooltip, self.vendor) else SpotTooltip(GameTooltip, self.spot) end
@@ -351,27 +354,13 @@ local function UpdateMinimapPins()
     for _, spot in pairs(showSpots and mmSpots or {}) do
         if spot.casts >= (NS.db.pinMinCasts or 3) then
             local pin = PlacePin(spot.x, spot.y)
-            if pin then
-                pin.spot = spot
-                if NS.IsPoolSpot and NS.IsPoolSpot(spot) then
-                    pin.Icon:SetTexture("Interface\\Icons\\INV_Crate_04")
-                    pin.Ring:SetVertexColor(0.3, 1, 0.4, 1)
-                else
-                    pin.Icon:SetTexture("Interface\\Icons\\INV_Misc_Fish_02")
-                    local r, g, b = ScoreColor(Score(spot))
-                    pin.Ring:SetVertexColor(r, g, b, 0.9)
-                end
-            end
+            if pin then pin.spot = spot end
         end
     end
 
     for _, vendor in ipairs(vendors or {}) do
         local pin = PlacePin(vendor.x / 100, vendor.y / 100)
-        if pin then
-            pin.vendor = vendor
-            pin.Icon:SetTexture("Interface\\Icons\\INV_Misc_Food_15")
-            pin.Ring:SetVertexColor(1, 0.82, 0, 1)
-        end
+        if pin then pin.vendor = vendor end
     end
 end
 
@@ -438,7 +427,7 @@ end)
 ------------------------------------------------------------------------------------------------------------------------
 local tab = NS.NewTab("Map")
 tab:Header("Personal heatmap")
-tab:Text("Every cast and catch is recorded with your position. Pins are coloured green / yellow / red by how well the spot has fished for you. Hover a pin for the details.", true)
+tab:Text("Every cast and catch is recorded with your position. World map pins are coloured green / yellow / red by how well the spot has fished for you; minimap pins are small purple dots. Hover a pin for the details.", true)
 tab:Check("Record fishing spots", "heatmap")
 tab:Check("Show pins on the world map", "worldPins", RefreshWorldPins)
 tab:Check("Show pins on the minimap", "minimapPins")

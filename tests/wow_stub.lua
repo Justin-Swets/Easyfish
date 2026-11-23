@@ -115,10 +115,21 @@ C_Item = {
     GetItemNameByID = function(id) return ITEMS[id] and ITEMS[id][1] end,
 }
 GetItemInfo, GetItemInfoInstant = info, instant
+-- Bag 0: slot 1 holds the fishing pole, then each lure the tests put in S.lures (by numeric item ID)
 C_Container = { GetContainerNumSlots = function(bag) return bag == 0 and 16 or 0 end,
-                GetContainerItemID = function(bag, slot) if bag == 0 and slot == 1 then return 101 end end,
+                GetContainerItemID = function(bag, slot)
+                    if bag ~= 0 then return nil end
+                    if slot == 1 then return 101 end
+                    local ids = {}
+                    for id, n in pairs(S.lures) do if type(id) == "number" and n > 0 then ids[#ids + 1] = id end end
+                    table.sort(ids)
+                    return ids[slot - 1]
+                end,
                 GetContainerItemInfo = function() return nil end }
-C_Spell = { GetSpellName = function(id) if id == 7620 or id == 131474 then return "Fishing" end end }
+C_Spell = { GetSpellName = function(id) if id == 7620 or id == 131474 then return "Fishing" end end,
+            GetSpellDescription = function(id) return S.spellText and S.spellText[id] end }
+S.itemSpell = {}   -- itemID -> spellID, for items with a "Use:" effect
+GetItemSpell = function(id) local spell = S.itemSpell[id] if spell then return "Use", spell end end
 C_CVar = { GetCVar = function() return "0" end, SetCVar = function() end }
 GetCVar, SetCVar = C_CVar.GetCVar, C_CVar.SetCVar
 

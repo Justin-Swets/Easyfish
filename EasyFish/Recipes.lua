@@ -346,4 +346,4 @@ tab:Refresh(Fill)
 tab:Check("Show every recipe, not just fish I've caught", "recipesAll", Fill)
 tab:Check("Add price and best recipes to fish tooltips", "fishTooltip")
 tab:Check("Mark recipe vendors on the minimap", "vendorPins", nil,
-    "Gold food icons show vendors in this zone who sell fish cooking recipes. Hover one to see what they sell.")
+    "Purple dots show vendors in this zone who sell fish cooking recipes. Hover one to see what they sell.")

@@ -66,7 +66,7 @@ the client notices the new addon folder, and keep *EasyFish History* enabled in 
 ### Recipes, rare fish and getting started
 - **Starter guide** — `/fish start` shows your next step and a route from skill 1 to 300 for your faction, with waypoints. Your place on it follows your skill.
 - **Recipes and vendors** — the Recipes tab lists what your fish make, sorted into what's ready to cook, what you know and what you can learn. Click a recipe for a waypoint to its nearest vendor.
-- **Recipe vendors on the minimap** — gold food icons mark vendors in your zone who sell fish cooking recipes. Hover one to see what they sell.
+- **Recipe vendors on the minimap** — purple minimap dots mark vendors in your zone who sell fish cooking recipes. Hover one to see what they sell.
 - **Richer fish tooltips** — any fish shows its auction or vendor price and what you can make with it, including how many from your bags.
 - **Rare and trophy fish** — see what's worth watching for in your zone, get an alert when you catch one, and hover the Top Fish rows to see each fish's rarity.
 

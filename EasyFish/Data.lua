@@ -77,16 +77,17 @@ NS.ZONE_LEVELS = {
     ["Silithus"] = 55, ["Moonglade"] = 1, ["Deadwind Pass"] = 55, ["Searing Gorge"] = 43,
 }
 
--- Lures: itemID -> skill bonus. Ordered list is strongest first.
+-- Lures: itemID -> skill bonus. Ordered list is strongest first. Names checked against Forever's item names.
+-- Lures not listed here (Forever's camp Fishing Rack, for one) are still found: see LureBonusOf in Guide.lua.
 NS.LURES = {
     { id = 68049, bonus = 150, name = "Heat-Treated Spinning Lure" },
     { id = 46006, bonus = 100, name = "Glow Worm" },
     { id = 34861, bonus = 100, name = "Sharpened Fish Hook" },
     { id = 62673, bonus = 100, name = "Feathered Lure" },
-    { id = 6811,  bonus = 100, name = "Aquadynamic Fish Attractor" },
+    { id = 6533,  bonus = 100, name = "Aquadynamic Fish Attractor" },
     { id = 6532,  bonus = 75,  name = "Bright Baubles" },
-    { id = 6533,  bonus = 75,  name = "Flesh Eating Worm" },
-    { id = 7307,  bonus = 50,  name = "Aquadynamic Fish Lens" },
+    { id = 7307,  bonus = 75,  name = "Flesh Eating Worm" },
+    { id = 6811,  bonus = 50,  name = "Aquadynamic Fish Lens" },
     { id = 6530,  bonus = 50,  name = "Nightcrawlers" },
     { id = 6529,  bonus = 25,  name = "Shiny Bauble" },
 }

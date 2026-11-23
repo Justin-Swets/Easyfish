@@ -414,6 +414,53 @@ check("hover shows the share", run("tipRows[2]"), "Share of your catches=37%")
 check("hover tints the row", run("tintColor"), "1,1,1")
 ex("NS.GetItemInfo = realGetItemInfo")
 
+print("\n=== lures, including ones EasyFish doesn't list")
+lua = new(); run = lua.eval; ex = lua.execute
+ex('''
+NS.db.smartLure = false
+function lureNow() local id, bonus = NS.ChooseLure() return id and (id .. ":" .. bonus) or "none" end
+S.lures = {}
+NS.Invalidate()
+''')
+check("no lures", run("lureNow()"), "none")
+ex("S.lures = { [6811] = 2, [6533] = 1 } NS.Invalidate()")
+check("Fish Attractor is the +100 one", run("lureNow()"), "6533:100")
+ex("S.lures = { [6811] = 2 } NS.Invalidate()")
+check("Fish Lens is +50", run("lureNow()"), "6811:50")
+ex('''
+S.lures = { [279990] = 3, [6529] = 1 }
+S.itemSpell[279990] = 555
+S.spellText = { [555] = "When applied to your fishing pole, increases Fishing by 75 for 10 min." }
+NS.Invalidate()
+''')
+check("an unlisted lure is read from its use text", run("lureNow()"), "279990:75")
+ex('''
+S.lures = { [279991] = 1 }
+S.itemSpell[279991] = 556
+S.spellText[556] = "Restores 200 health over 20 sec."
+NS.Invalidate()
+''')
+check("other usable items are not lures", run("lureNow()"), "none")
+ex('''
+S.lures = { [279992] = 1 }
+S.itemSpell[279992] = 557
+NS.Invalidate()
+first = lureNow()
+S.spellText[557] = "Increases the fishing skill of a fishing pole by 100 for 10 min."
+NS.Invalidate()
+''')
+check("text not loaded yet: not a lure for now", run("first"), "none")
+check("...and found once the game has the text", run("lureNow()"), "279992:100")
+ex('''
+NS.db.smartLure = true
+S.zone, S.skill, S.modifier = "Westfall", 55, 0
+S.lures = { [6533] = 1, [6532] = 1, [6529] = 1 }
+NS.Invalidate()
+''')
+check("smart lure picks the weakest that reaches junk-free", run("lureNow()"), "6533:100")
+ex("S.skill = 90 NS.Invalidate()")
+check("...and a smaller one when less is needed", run("lureNow()"), "6532:75")
+
 print("\n=== starter guide")
 check("skill picks the step", run("(function() S.skill = 180 local s, i = NS.StarterStep() return s.zone end)()"), "Stranglethorn Vale")
 check("past the end: no step", run("(function() S.skill = 300 return NS.StarterStep() end)()"), None)
